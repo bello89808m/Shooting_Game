@@ -3,7 +3,12 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - RangeTag
+  - Capsule
+  - Vent Door
+  - player
+  - Trigger Door
   layers:
   - Default
   - TransparentFX

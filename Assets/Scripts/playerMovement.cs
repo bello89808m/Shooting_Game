@@ -1,213 +1,128 @@
-
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class playerMovement : MonoBehaviour
 {
-    [Header("Movement")]
-    private float moveSpeed;
-    public float walkSpeed;
-    public float sprintSpeed;
-
+    Rigidbody rb;
+    [Header("Move Player")]
+    private CharacterController playerController;
     public float groundDrag;
+    float horizontalInput;
+    float verticalInput;
+    public float moveSpeed;
 
-    [Header("Jump")]
-    public float jumpForce;
-    public float jumpCooldown;
-    public float airMultiplier;
-    bool readyToJump;
-
-    [Header("Crouching")]
-    public float crouchSpeed;
-    public float crouchScale;
+    [Header("Crouch Player")]
     private float YScale;
+    public float crouchScale = 2;
+    public bool crouch = false;
 
-    [Header("Keybinds")]
-    public KeyCode jumpKey = KeyCode.Space;
+    [Header("Inputs")]
     public KeyCode sprintKey = KeyCode.LeftShift;
     public KeyCode crouchKey = KeyCode.LeftControl;
-    public KeyCode rightPeakKey = KeyCode.E;
-    public KeyCode leftPeakKey = KeyCode.Q;
-
-    [Header("Ground")]
-    public float playerHeight;
-    public LayerMask whatIsGround;
-    bool grounded;
-
-    [Header("Slope")]
-    public float maxSlope;
-    public RaycastHit slopeHit;
-    private bool exitingSlope;
+    public KeyCode wKey = KeyCode.W;
 
     public Transform orientation;
 
-    float horizontalInput;
-    float verticalInput;
-
     Vector3 moveDirection;
-    Rigidbody rb;
 
+    //Movement States
     public movementState state;
-    // Movement states
     public enum movementState
     {
         walking,
         sprinting,
-        crouching,
-        air
+        crouching
     }
 
-    // Start is called before the first frame update
-    private void Start()
+    void Start()
     {
+        //Fetch the Rigidbody from the GameObject with this script attached
         rb = GetComponent<Rigidbody>();
+        playerController = GetComponent<CharacterController>();
         rb.freezeRotation = true; 
-        readyToJump = true;
         YScale = transform.localScale.y;
+
     }
 
-    // Update is called once per frame
-    private void Update()
+    void Update()
     {
-        grounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, whatIsGround);
-         if(grounded)
-            rb.drag = groundDrag;
-         else
-            rb.drag = 0;
+        rb.drag = groundDrag;
 
-        myInput();
         speedControl();
+        Inputs();
         setState();
     }
 
-    // Update is called multiple times per frame
-    private void FixedUpdate()
+    void FixedUpdate()
     {
-        movePlayer();
+        MovePlayer();
     }
 
-    //******************************* In the update function ******************************
-    
-    // Inputs of the player
-    private void myInput()
+    //Take in user inputs
+
+    void Inputs()
     {
         horizontalInput = Input.GetAxisRaw("Horizontal");
         verticalInput = Input.GetAxisRaw("Vertical");
 
-        if(Input.GetKey(jumpKey) && readyToJump && grounded)
-        {
-            readyToJump = false;
-            jump();
-            Invoke(nameof(resetJump),jumpCooldown);
-        }
-
         if(Input.GetKeyDown(crouchKey))
         {
+            crouch = true;
             transform.localScale = new Vector3(transform.localScale.x,crouchScale,transform.localScale.z);
             rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
         }
-         if(Input.GetKeyUp(crouchKey))
+
+        if(Input.GetKeyUp(crouchKey))
         {
+            crouch = false;
             transform.localScale = new Vector3(transform.localScale.x,YScale,transform.localScale.z);
         }
     }
 
-    // Control the speed of which the player is moving
-    private void speedControl()
+    //Move the actual player
+
+    void MovePlayer()
     {
-        if(onSlope())
-        {
-            if(rb.velocity.magnitude > moveSpeed)
-                rb.velocity = rb.velocity.normalized * moveSpeed;
-        }
-        else
-        {
-            Vector3 flatVel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
-            if(flatVel.magnitude>moveSpeed)
-            {
-                Vector3 limitedVel =  flatVel.normalized * moveSpeed;
-                rb.velocity = new Vector3(limitedVel.x, rb.velocity.y, limitedVel.z);
-            }
-        }
+        //Store user input as a movement vector
+        moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
+
+        rb.AddForce(moveDirection.normalized * moveSpeed * 10f, ForceMode.Force);
     }
 
-    // Setting what state you are in
+    //What is your current movement
+
     private void setState()
     {
         if(Input.GetKey(crouchKey))
         {
             state = movementState.crouching;
-            moveSpeed = crouchSpeed;
+            moveSpeed = 3;
         }
-        else if(grounded && Input.GetKey(sprintKey))
+
+        else if(Input.GetKey(sprintKey))
         {
             state = movementState.sprinting;
-            moveSpeed = sprintSpeed;
+            moveSpeed = 10;
         }
-        else if(grounded)
-        {
-            state =movementState.walking;
-            moveSpeed = walkSpeed;
-        }
+
         else
         {
-            state =movementState.air;
+            state =movementState.walking;
+            moveSpeed = 5;
         }
     }
 
-    //******************************* In the fixedupdate function ******************************
+    //Control the speed of the player
 
-    // What gets the player to move
-    private void movePlayer()
+    private void speedControl()
     {
-        //calculate player movement
-        moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
-        //on slope
-        if(onSlope() && !exitingSlope)
+        Vector3 flatVel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+
+        if(flatVel.magnitude>moveSpeed)
         {
-            rb.AddForce(slopeMoveDirection() * moveSpeed * 20f, ForceMode.Force);
-            if(rb.velocity.y > 0)
-                rb.AddForce(Vector3.down*80f,ForceMode.Force);
-        }   
-        //on ground
-        if(grounded)
-            rb.AddForce(moveDirection.normalized * moveSpeed * 10f, ForceMode.Force);
-        //on air
-        else if(!grounded)
-            rb.AddForce(moveDirection.normalized * moveSpeed * 10f * airMultiplier, ForceMode.Force);
-        rb.useGravity = !onSlope();
-    }     
-
-    //******************************* Called in different functions ******************************
-
-    // Allow the player to jump
-    private void jump()
-    {
-        exitingSlope = true;
-        rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
-
-        rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
-    }
-
-    // Make sure that you can jump again
-    private void resetJump()
-    {
-        readyToJump = true;
-        exitingSlope = false;
-    }
-
-    private bool onSlope()
-    {
-        if(Physics.Raycast(transform.position, Vector3.down, out slopeHit, playerHeight * 0.5f+0.3f))
-        {
-            float angle = Vector3.Angle(Vector3.up, slopeHit.normal);
-            return angle < maxSlope && angle != 0;
+            Vector3 limitedVel =  flatVel.normalized * moveSpeed;
+            rb.velocity = new Vector3(limitedVel.x, rb.velocity.y, limitedVel.z);
         }
-        return false;
-    }
-    private Vector3 slopeMoveDirection()
-    {
-        return Vector3.ProjectOnPlane(moveDirection,slopeHit.normal).normalized;
     }
 }
