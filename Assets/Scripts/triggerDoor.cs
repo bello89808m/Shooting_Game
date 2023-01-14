@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class VentDoor : MonoBehaviour
+public class triggerDoor : MonoBehaviour
 {
     [Header("Animator")]
     [SerializeField] Animator door = null;
@@ -21,7 +21,7 @@ public class VentDoor : MonoBehaviour
         {
             if(openTrigger)
             {
-                door.Play("Door Open",0,0.0f);
+                door.Play(doorOpen,0,0.0f);
                 gameObject.SetActive(false);
             }
         }
@@ -30,7 +30,7 @@ public class VentDoor : MonoBehaviour
     {
         if(closeTrigger)
         {
-            door.Play("Door Close",0,0.0f);
+            door.Play(doorClose,0,0.0f);
             gameObject.SetActive(false);
         }
     }

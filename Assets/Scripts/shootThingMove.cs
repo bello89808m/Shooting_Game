@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class shootThingMove : MonoBehaviour
 {
-    Rigidbody rb;
     [SerializeField] float distance;
     [SerializeField] float speed;
     private Vector3 startPos;

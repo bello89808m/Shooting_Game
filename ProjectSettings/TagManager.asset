@@ -6,9 +6,10 @@ TagManager:
   tags:
   - RangeTag
   - Capsule
-  - Vent Door
   - player
   - Trigger Door
+  - Vent
+  - Door
   layers:
   - Default
   - TransparentFX

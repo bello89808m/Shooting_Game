@@ -4,125 +4,60 @@ using UnityEngine;
 
 public class playerMovement : MonoBehaviour
 {
-    Rigidbody rb;
-    [Header("Move Player")]
-    private CharacterController playerController;
-    public float groundDrag;
-    float horizontalInput;
-    float verticalInput;
-    public float moveSpeed;
+    public CharacterController controller;
 
-    [Header("Crouch Player")]
-    private float YScale;
-    public float crouchScale = 2;
-    public bool crouch = false;
+    [Header("Movement")]
+    public float speed = 3f, sprintSpeed = 4f;
+    float x, z;
+    public bool isSprinting;
 
-    [Header("Inputs")]
-    public KeyCode sprintKey = KeyCode.LeftShift;
-    public KeyCode crouchKey = KeyCode.LeftControl;
-    public KeyCode wKey = KeyCode.W;
+    [Header("Keybinds")]
+    public KeyCode sprintKey = KeyCode.LeftShift, crouchKey = KeyCode.LeftControl;
 
-    public Transform orientation;
-
-    Vector3 moveDirection;
-
-    //Movement States
-    public movementState state;
-    public enum movementState
-    {
-        walking,
-        sprinting,
-        crouching
-    }
-
-    void Start()
-    {
-        //Fetch the Rigidbody from the GameObject with this script attached
-        rb = GetComponent<Rigidbody>();
-        playerController = GetComponent<CharacterController>();
-        rb.freezeRotation = true; 
-        YScale = transform.localScale.y;
-
-    }
+    [Header("Crouch")]
+    public float crouchSpeed, crouchingSpeed;
+    public bool isCrouching, isVent;
 
     void Update()
     {
-        rb.drag = groundDrag;
-
-        speedControl();
-        Inputs();
-        setState();
+        playerMove();
     }
 
-    void FixedUpdate()
+    void playerMove()
     {
-        MovePlayer();
-    }
+        //Moving the player
+        x = Input.GetAxis("Horizontal");
+        z = Input.GetAxis("Vertical");
+        isSprinting = Input.GetKey(sprintKey);
+        isCrouching = Input.GetKey(crouchKey);
 
-    //Take in user inputs
-
-    void Inputs()
-    {
-        horizontalInput = Input.GetAxisRaw("Horizontal");
-        verticalInput = Input.GetAxisRaw("Vertical");
-
-        if(Input.GetKeyDown(crouchKey))
+        if(isCrouching)
         {
-            crouch = true;
-            transform.localScale = new Vector3(transform.localScale.x,crouchScale,transform.localScale.z);
-            rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
+            crouchMovement();
+        }else
+        {
+            standingMovement();
         }
 
-        if(Input.GetKeyUp(crouchKey))
+        Vector3 move = transform.right * x + transform.forward * z;
+
+        if(isCrouching)
         {
-            crouch = false;
-            transform.localScale = new Vector3(transform.localScale.x,YScale,transform.localScale.z);
-        }
-    }
-
-    //Move the actual player
-
-    void MovePlayer()
-    {
-        //Store user input as a movement vector
-        moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
-
-        rb.AddForce(moveDirection.normalized * moveSpeed * 10f, ForceMode.Force);
-    }
-
-    //What is your current movement
-
-    private void setState()
-    {
-        if(Input.GetKey(crouchKey))
+            controller.Move(Vector3.ClampMagnitude(move,1.0f) * crouchSpeed * Time.deltaTime);
+        }else if(isSprinting)
         {
-            state = movementState.crouching;
-            moveSpeed = 3;
-        }
-
-        else if(Input.GetKey(sprintKey))
+            controller.Move(Vector3.ClampMagnitude(move,1.0f) * sprintSpeed * Time.deltaTime);
+        }else
         {
-            state = movementState.sprinting;
-            moveSpeed = 10;
-        }
-
-        else
-        {
-            state =movementState.walking;
-            moveSpeed = 5;
+            controller.Move(Vector3.ClampMagnitude(move,1.0f) * speed * Time.deltaTime);
         }
     }
-
-    //Control the speed of the player
-
-    private void speedControl()
+    
+    void crouchMovement()
     {
-        Vector3 flatVel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+    }
 
-        if(flatVel.magnitude>moveSpeed)
-        {
-            Vector3 limitedVel =  flatVel.normalized * moveSpeed;
-            rb.velocity = new Vector3(limitedVel.x, rb.velocity.y, limitedVel.z);
-        }
+    void standingMovement()
+    {
     }
 }
