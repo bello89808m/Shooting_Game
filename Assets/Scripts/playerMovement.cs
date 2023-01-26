@@ -7,16 +7,32 @@ public class playerMovement : MonoBehaviour
     public CharacterController controller;
 
     [Header("Movement")]
-    public float speed = 3f, sprintSpeed = 4f;
-    float x, z;
+    public float speed = 3f;
+    public float sprintSpeed = 4f;
+    private float x, z;
     public bool isSprinting;
 
-    [Header("Keybinds")]
-    public KeyCode sprintKey = KeyCode.LeftShift, crouchKey = KeyCode.LeftControl;
+    [Header("Gravity")]
+    private Vector3 velocity;
+    private float gravity = -5f;
 
     [Header("Crouch")]
-    public float crouchSpeed, crouchingSpeed;
-    public bool isCrouching, isVent;
+    public float crouchSpeed;
+    public float crouchingSpeed;
+    public float currentHeight;
+    private float elapsedTime;
+    public bool isCrouching;
+
+    [Header("GroundCheck")]
+    public Transform groundCheck;
+    public LayerMask groundMask;
+    public float groundDistance;
+    public bool isGrounded;
+
+    [Header("Keybinds")]
+    public KeyCode sprintKey = KeyCode.LeftShift;
+    public KeyCode crouchKey = KeyCode.LeftControl;
+
 
     void Update()
     {
@@ -25,21 +41,40 @@ public class playerMovement : MonoBehaviour
 
     void playerMove()
     {
+        //Ground check
+
+        isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
+
+        if(isGrounded && velocity.y < 0)
+        {
+            velocity.y= -2f;
+        }
+
+        //Gravity
+
+        velocity.y += gravity * Time.deltaTime;
+        controller.Move(velocity *Time.deltaTime);
+
         //Moving the player
+
         x = Input.GetAxis("Horizontal");
         z = Input.GetAxis("Vertical");
+
         isSprinting = Input.GetKey(sprintKey);
         isCrouching = Input.GetKey(crouchKey);
+        
+        Vector3 move = transform.right * x + transform.forward * z;
+
+        //Crouching
 
         if(isCrouching)
         {
-            crouchMovement();
-        }else
-        {
-            standingMovement();
+            crouching();
+        }else{
+            standing();
         }
 
-        Vector3 move = transform.right * x + transform.forward * z;
+        //Movement State
 
         if(isCrouching)
         {
@@ -51,13 +86,38 @@ public class playerMovement : MonoBehaviour
         {
             controller.Move(Vector3.ClampMagnitude(move,1.0f) * speed * Time.deltaTime);
         }
-    }
-    
-    void crouchMovement()
-    {
-    }
 
-    void standingMovement()
-    {
+        void crouching(){
+            controller.height = Mathf.Lerp(currentHeight, 0.5f, Time.deltaTime*crouchingSpeed);
+            if(controller.height <= 0.55f){
+                controller.height = 0.5f;
+            }
+            currentHeight = controller.height;
+        }
+
+        void standing(){
+            RaycastHit hit;
+            if(Physics.Raycast(transform.position, transform.up, out hit, 2f))
+            {
+                if(hit.distance < 2f - 0.5f){
+                    controller.height = 0.5f;
+                    isCrouching = true;
+                }
+                else{
+                    controller.height = Mathf.Lerp(currentHeight, 2f, Time.deltaTime*crouchingSpeed);
+                    if(controller.height >= 1.90f){
+                        controller.height = 2f;
+                    }
+                    currentHeight = controller.height;
+                }
+            }
+            else{
+                    controller.height = Mathf.Lerp(currentHeight, 2f, Time.deltaTime*crouchingSpeed);
+                    if(controller.height >= 1.90f){
+                        controller.height = 2f;
+                    }
+                    currentHeight = controller.height;
+                }
+        }
     }
 }
