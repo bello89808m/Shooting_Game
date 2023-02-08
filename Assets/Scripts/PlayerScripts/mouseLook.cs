@@ -7,8 +7,6 @@ public class mouseLook : MonoBehaviour
     public float mouseSensitivity = 7500f;
     private float xRotation = 0f;
 
-    public float bobSpeed;
-    public float bobHeight;
     Vector3 velocity;
 
     public GameObject cam;

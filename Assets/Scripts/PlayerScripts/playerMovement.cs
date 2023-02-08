@@ -31,14 +31,21 @@ public class playerMovement : MonoBehaviour
 
     [Header("Keybinds")]
     public KeyCode sprintKey = KeyCode.LeftShift;
-    public KeyCode crouchKey = KeyCode.LeftControl;
+    public KeyCode crouchKey = KeyCode.C;
 
 
     void Update()
     {
         playerMove();
-        Debug.Log(Screen.width);
-        Debug.Log(Screen.height);
+    }
+
+    public movementState state;
+    public enum movementState
+    {
+        walking,
+        crouching,
+        sprinting,
+        still
     }
 
     void playerMove()
@@ -67,9 +74,11 @@ public class playerMovement : MonoBehaviour
         
         Vector3 move = transform.right * x + transform.forward * z;
 
+        controller.Move(Vector3.ClampMagnitude(move, 1.0f) * speed * Time.deltaTime);
+
         //Crouching
 
-        if(isCrouching)
+        if (isCrouching)
         {
             crouching();
         }else{
@@ -78,48 +87,57 @@ public class playerMovement : MonoBehaviour
 
         //Movement State
 
-        if(isCrouching)
+        if (isCrouching)
         {
-            controller.Move(Vector3.ClampMagnitude(move,1.0f) * crouchSpeed * Time.deltaTime);
-        }else if(isSprinting)
-        {
-            controller.Move(Vector3.ClampMagnitude(move,1.0f) * sprintSpeed * Time.deltaTime);
-        }else
-        {
-            controller.Move(Vector3.ClampMagnitude(move,1.0f) * speed * Time.deltaTime);
-        }
+            state = movementState.crouching;
+            speed = 2f;
 
-        void crouching(){
-            controller.height = Mathf.Lerp(currentHeight, 0.5f, Time.deltaTime*crouchingSpeed);
-            if(controller.height <= 0.55f){
+        }else if(isSprinting){
+            state = movementState.sprinting;
+            speed = 4f;
+
+        }else if(x != 0 || z != 0){
+            state = movementState.walking;
+            speed = 3f;
+
+        }else{
+            state = movementState.still;
+            speed = 0f;
+        }
+    }
+
+    void crouching()
+    {
+        controller.height = Mathf.Lerp(currentHeight, 0.5f, Time.deltaTime * crouchingSpeed);
+        if (controller.height <= 0.55f){
+            controller.height = 0.5f;
+        }
+        currentHeight = controller.height;
+    }
+
+    void standing()
+    {
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, transform.up, out hit, 2f)){
+            if (hit.distance < 2f - 0.5f){
                 controller.height = 0.5f;
+                isCrouching = true;
+
+            }else{
+                controller.height = Mathf.Lerp(currentHeight, 2f, Time.deltaTime * crouchingSpeed);
+                if (controller.height >= 1.90f){
+                    controller.height = 2f;
+                }
+                currentHeight = controller.height;
+            }
+
+        }else{
+            controller.height = Mathf.Lerp(currentHeight, 2f, Time.deltaTime * crouchingSpeed);
+            if (controller.height >= 1.90f){
+                controller.height = 2f;
+
             }
             currentHeight = controller.height;
-        }
-
-        void standing(){
-            RaycastHit hit;
-            if(Physics.Raycast(transform.position, transform.up, out hit, 2f))
-            {
-                if(hit.distance < 2f - 0.5f){
-                    controller.height = 0.5f;
-                    isCrouching = true;
-                }
-                else{
-                    controller.height = Mathf.Lerp(currentHeight, 2f, Time.deltaTime*crouchingSpeed);
-                    if(controller.height >= 1.90f){
-                        controller.height = 2f;
-                    }
-                    currentHeight = controller.height;
-                }
-            }
-            else{
-                    controller.height = Mathf.Lerp(currentHeight, 2f, Time.deltaTime*crouchingSpeed);
-                    if(controller.height >= 1.90f){
-                        controller.height = 2f;
-                    }
-                    currentHeight = controller.height;
-                }
         }
     }
 }
