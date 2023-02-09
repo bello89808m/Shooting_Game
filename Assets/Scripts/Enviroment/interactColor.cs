@@ -14,7 +14,7 @@ public class interactColor : Interactable
     }
     public override string getDescription()
     {
-        return "[E] Change Color";
+        return "Change Color";
     }
 
     public override void interact()

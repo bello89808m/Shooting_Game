@@ -17,6 +17,8 @@ public abstract class Interactable : MonoBehaviour
     public void resetTime() => holdTime = 0;
     public float getHoldTime() => holdTime;
 
+    public bool canInteract = true;
+
     public abstract void interact();
     public abstract string getDescription();
 }

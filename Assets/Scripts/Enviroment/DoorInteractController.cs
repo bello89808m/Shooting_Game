@@ -18,10 +18,10 @@ public class DoorInteractController : Interactable
             return "Closing Door";
         }
         else if (Door.isOpen){
-            return "[E] Close Door";
+            return "Close Door";
         }
         else{
-            return "[E] Open Door";
+            return "Open Door";
         }
     }
 

@@ -44,18 +44,18 @@ public class interactController : MonoBehaviour
 
     void HandleInteraction(Interactable interactable)
     {
-        KeyCode Key = KeyCode.E;
+        KeyCode Key = KeyCode.Mouse0;
 
         switch (interactable.interactiontype)
         {
             case Interactable.InteractionType.Click:
-                if (Input.GetKeyDown(Key))
+                if (Input.GetKeyDown(Key) && interactable.canInteract)
                 {
                     interactable.interact();
                 }
                 break;
             case Interactable.InteractionType.Hold:
-                if (Input.GetKey(Key))
+                if (Input.GetKey(Key) && interactable.canInteract)
                 {
                     interactable.holdingTime();
                     if (interactable.getHoldTime() > 1.0f)
@@ -68,6 +68,7 @@ public class interactController : MonoBehaviour
                 {
                     interactable.resetTime();
                 }
+
                 interactionProgress.fillAmount = interactable.getHoldTime();
                 break;
             default:
