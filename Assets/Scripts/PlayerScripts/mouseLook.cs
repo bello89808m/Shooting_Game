@@ -4,13 +4,13 @@ using UnityEngine;
 
 public class mouseLook : MonoBehaviour
 {
-    public float mouseSensitivity = 7500f;
+    [SerializeField] private float mouseSensitivity = 7500f;
     private float xRotation = 0f;
 
     Vector3 velocity;
 
-    public GameObject cam;
-    public Transform playerBody;
+    [SerializeField] private GameObject cam;
+    [SerializeField] private Transform playerBody;
 
     // Start is called before the first frame update
     void Start()

@@ -10,9 +10,9 @@ public class interactController : MonoBehaviour
     [SerializeField] private float distance = 3.0f;
     private float letGoTime;
 
-    public TextMeshProUGUI InteractionText;
-    public GameObject InteractingHoldGo;
-    public Image interactionProgress;
+    [SerializeField] private TextMeshProUGUI InteractionText;
+    [SerializeField] private GameObject InteractingHoldGo;
+    [SerializeField] private Image interactionProgress;
 
     void Update()
     {

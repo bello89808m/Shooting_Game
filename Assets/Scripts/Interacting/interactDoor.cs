@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting.Antlr3.Runtime;
 using UnityEngine;
 
-public class interactDoor : MonoBehaviour { 
+public class interactDoor : MonoBehaviour {
     public bool isOpen = false;
     public bool isMoving = false;
 

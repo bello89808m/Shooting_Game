@@ -7,8 +7,7 @@ public class playerMovement : MonoBehaviour
     public CharacterController controller;
 
     [Header("Movement")]
-    public float speed = 3f;
-    public float sprintSpeed = 4f;
+    [SerializeField] private float speed = 3f;
     private float x, z;
     public bool isSprinting;
 
@@ -17,21 +16,21 @@ public class playerMovement : MonoBehaviour
     private float gravity = -5f;
 
     [Header("Crouch")]
-    public float crouchSpeed;
-    public float crouchingSpeed;
-    public float currentHeight;
+    [SerializeField] private float crouchingSpeed;
+    [SerializeField] private float standingSpeed;
+    private float currentHeight;
     private float elapsedTime;
     public bool isCrouching;
 
     [Header("GroundCheck")]
-    public Transform groundCheck;
-    public LayerMask groundMask;
+    [SerializeField] private Transform groundCheck;
+    [SerializeField] private LayerMask groundMask;
     public float groundDistance;
-    public bool isGrounded;
+    private bool isGrounded;
 
     [Header("Keybinds")]
-    public KeyCode sprintKey = KeyCode.LeftShift;
-    public KeyCode crouchKey = KeyCode.C;
+    [SerializeField] private KeyCode sprintKey = KeyCode.LeftShift;
+    [SerializeField] private KeyCode crouchKey = KeyCode.C;
 
 
     void Update()
@@ -87,12 +86,11 @@ public class playerMovement : MonoBehaviour
 
         //Movement State
 
-        if (isCrouching)
+        if (isCrouching && (x != 0 || z != 0))
         {
             state = movementState.crouching;
             speed = 2f;
-
-        }else if(isSprinting){
+        }else if(isSprinting && (x != 0 || z != 0)){
             state = movementState.sprinting;
             speed = 4f;
 
@@ -110,7 +108,7 @@ public class playerMovement : MonoBehaviour
     {
         controller.height = Mathf.Lerp(currentHeight, 0.5f, Time.deltaTime * crouchingSpeed);
         if (controller.height <= 0.55f){
-            controller.height = 0.5f;
+            controller.height = 0.2f;
         }
         currentHeight = controller.height;
     }
@@ -124,16 +122,16 @@ public class playerMovement : MonoBehaviour
                 isCrouching = true;
 
             }else{
-                controller.height = Mathf.Lerp(currentHeight, 2f, Time.deltaTime * crouchingSpeed);
-                if (controller.height >= 1.90f){
+                controller.height = Mathf.Lerp(currentHeight, 2f, Time.deltaTime * standingSpeed);
+                if (controller.height >= 1.95f){
                     controller.height = 2f;
                 }
                 currentHeight = controller.height;
             }
 
         }else{
-            controller.height = Mathf.Lerp(currentHeight, 2f, Time.deltaTime * crouchingSpeed);
-            if (controller.height >= 1.90f){
+            controller.height = Mathf.Lerp(currentHeight, 2f, Time.deltaTime * standingSpeed);
+            if (controller.height >= 1.905){
                 controller.height = 2f;
 
             }

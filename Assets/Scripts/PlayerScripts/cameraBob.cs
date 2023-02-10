@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class cameraBob : MonoBehaviour
 {
-    [SerializeField] private Transform camera = null;
+    [SerializeField] private new Transform camera = null;
     [SerializeField] private playerMovement playerSpeed;
 
     private float amplitude;
