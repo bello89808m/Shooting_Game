@@ -6,18 +6,18 @@ public class cameraBob : MonoBehaviour
 {
     [SerializeField] private new Transform camera = null;
     [SerializeField] private playerMovement playerSpeed;
+    [SerializeField] private Transform boxHolder;
+    [SerializeField] private CharacterController controller;
 
     private float amplitude;
     private float frequency;
 
     private Vector3 startPos;
-    private CharacterController controller;
 
 
     // Start is called before the first frame update
     private void Awake()
     {
-        controller = GetComponent<CharacterController>();
         startPos = camera.localPosition;
     }
 
@@ -29,21 +29,18 @@ public class cameraBob : MonoBehaviour
 
     private void PlayMotion(Vector3 motion)
     {
-        camera.localPosition += motion; 
+        camera.localPosition += motion;
     }
 
     private void CheckMotion()
-    { 
+    {
         ResetPosition();
 
-        if (playerSpeed.state == playerMovement.movementState.walking){
-            PlayMotion(FootSteps(7f, 0.002f));
+        if ((playerSpeed.state == playerMovement.movementState.walking || playerSpeed.state == playerMovement.movementState.sprinting) && controller.height >= 2f) {
+            PlayMotion(FootSteps(5.5f, 0.003f));
 
-        }else if(playerSpeed.state == playerMovement.movementState.sprinting){
-            PlayMotion(FootSteps(8f, 0.0025f));
-
-        }else if (playerSpeed.state == playerMovement.movementState.crouching){
-            PlayMotion(FootSteps(6f, 0.001f));
+        } else if(playerSpeed.state == playerMovement.movementState.crouching){
+            PlayMotion(FootSteps(4f, 0.0015f));
         }
     }
 
@@ -57,6 +54,6 @@ public class cameraBob : MonoBehaviour
     private void ResetPosition()
     {   
         if(camera.localPosition == startPos) return;
-        camera.localPosition = Vector3.Lerp(camera.localPosition, startPos, 7 * Time.deltaTime);
+        camera.localPosition = Vector3.Lerp(camera.localPosition, startPos, 5 * Time.deltaTime);
     }
 }

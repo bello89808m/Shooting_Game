@@ -20,5 +20,6 @@ public class interactColor : Interactable
     public override void interact()
     {
         render.material = color[Random.Range(0,5)];
+        canInteract = false;
     }
 }

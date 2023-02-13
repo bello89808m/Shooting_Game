@@ -44,7 +44,7 @@ public class interactController : MonoBehaviour
 
     void HandleInteraction(Interactable interactable)
     {
-        KeyCode Key = KeyCode.Mouse0;
+        KeyCode Key = KeyCode.E;
 
         switch (interactable.interactiontype)
         {
@@ -54,6 +54,7 @@ public class interactController : MonoBehaviour
                     interactable.interact();
                 }
                 break;
+
             case Interactable.InteractionType.Hold:
                 if (Input.GetKey(Key) && interactable.canInteract)
                 {
@@ -71,6 +72,7 @@ public class interactController : MonoBehaviour
 
                 interactionProgress.fillAmount = interactable.getHoldTime();
                 break;
+
             default:
                 throw new System.Exception("Unsupported Interactable");
         }
