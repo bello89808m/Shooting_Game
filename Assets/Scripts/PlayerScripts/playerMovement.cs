@@ -9,6 +9,7 @@ public class playerMovement : MonoBehaviour
     [Header("Movement")]
     [SerializeField] private float speed = 3f;
     [SerializeField] new Camera camera;
+    [SerializeField] new Camera holdingCamera;
     [SerializeField] private float sprintFOV;
     [SerializeField] private float walkFOV;
     private float FOV;
@@ -95,24 +96,37 @@ public class playerMovement : MonoBehaviour
             speed = 2f;
 
             camera.fieldOfView = Mathf.Lerp(camera.fieldOfView, walkFOV, 10 * Time.deltaTime);
+            holdingCamera.fieldOfView = Mathf.Lerp(camera.fieldOfView, walkFOV, 10 * Time.deltaTime);
         }
         else if(isSprinting && (x != 0 || z != 0)){
             state = movementState.sprinting;
             speed = 4f;
 
             camera.fieldOfView = Mathf.Lerp(camera.fieldOfView, sprintFOV, 10 * Time.deltaTime);
+            holdingCamera.fieldOfView = Mathf.Lerp(camera.fieldOfView, sprintFOV, 10 * Time.deltaTime);
         }
         else if(x != 0 || z != 0){
             state = movementState.walking;
             speed = 3f;
 
             camera.fieldOfView = Mathf.Lerp(camera.fieldOfView, walkFOV, 10 * Time.deltaTime);
+            holdingCamera.fieldOfView = Mathf.Lerp(camera.fieldOfView, walkFOV, 10 * Time.deltaTime);
         }
         else{
             state = movementState.still;
             speed = 0f;
 
             camera.fieldOfView = Mathf.Lerp(camera.fieldOfView, walkFOV, 10 * Time.deltaTime);
+            holdingCamera.fieldOfView = Mathf.Lerp(camera.fieldOfView, walkFOV, 10 * Time.deltaTime);
+        }
+
+        if (camera.fieldOfView < 60.5f){
+            camera.fieldOfView = 60f;
+            holdingCamera.fieldOfView = 60f;
+        }
+        else if (camera.fieldOfView > 74.5f){
+            camera.fieldOfView = 75f;
+            holdingCamera.fieldOfView = 75f;
         }
     }
 

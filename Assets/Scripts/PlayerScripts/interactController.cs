@@ -8,7 +8,6 @@ public class interactController : MonoBehaviour
 {
     [SerializeField] private Camera cam;
     [SerializeField] private float distance = 3.0f;
-    private float letGoTime;
 
     [SerializeField] private TextMeshProUGUI InteractionText;
     [SerializeField] private GameObject InteractingHoldGo;
@@ -24,12 +23,12 @@ public class interactController : MonoBehaviour
         {
             Interactable interacting = hit.collider.GetComponent<Interactable>();
 
-            if (interacting != null)
+            if (interacting != null && interacting.canInteract)
             {
                 HandleInteraction(interacting);
 
                 hitSomething = true;
-
+                
                 InteractionText.text = interacting.getDescription();
 
                 InteractingHoldGo.SetActive(interacting.interactiontype == Interactable.InteractionType.Hold);
@@ -44,19 +43,19 @@ public class interactController : MonoBehaviour
 
     void HandleInteraction(Interactable interactable)
     {
-        KeyCode Key = KeyCode.E;
+        KeyCode Key = interactable.definedKey();
 
         switch (interactable.interactiontype)
         {
             case Interactable.InteractionType.Click:
-                if (Input.GetKeyDown(Key) && interactable.canInteract)
+                if (Input.GetKeyDown(Key))
                 {
                     interactable.interact();
                 }
                 break;
 
             case Interactable.InteractionType.Hold:
-                if (Input.GetKey(Key) && interactable.canInteract)
+                if (Input.GetKey(Key))
                 {
                     interactable.holdingTime();
                     if (interactable.getHoldTime() > 1.0f)

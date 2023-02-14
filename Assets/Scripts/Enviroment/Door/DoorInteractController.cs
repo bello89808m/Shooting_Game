@@ -36,4 +36,9 @@ public class DoorInteractController : Interactable
             Door.open();
         }
     }
+
+    public override KeyCode definedKey()
+    {
+        return KeyCode.E;
+    }
 }

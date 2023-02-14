@@ -21,4 +21,5 @@ public abstract class Interactable : MonoBehaviour
 
     public abstract void interact();
     public abstract string getDescription();
+    public abstract KeyCode definedKey();
 }

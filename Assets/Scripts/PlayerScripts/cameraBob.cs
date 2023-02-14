@@ -6,7 +6,6 @@ public class cameraBob : MonoBehaviour
 {
     [SerializeField] private new Transform camera = null;
     [SerializeField] private playerMovement playerSpeed;
-    [SerializeField] private Transform boxHolder;
     [SerializeField] private CharacterController controller;
 
     private float amplitude;
