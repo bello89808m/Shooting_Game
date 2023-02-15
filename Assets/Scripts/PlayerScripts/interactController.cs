@@ -7,7 +7,7 @@ using TMPro;
 public class interactController : MonoBehaviour
 {
     [SerializeField] private Camera cam;
-    [SerializeField] private float distance = 3.0f;
+    [SerializeField] private float distance = .0f;
 
     [SerializeField] private TextMeshProUGUI InteractionText;
     [SerializeField] private GameObject InteractingHoldGo;
