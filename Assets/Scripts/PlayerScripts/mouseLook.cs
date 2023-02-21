@@ -12,13 +12,11 @@ public class mouseLook : MonoBehaviour
     [SerializeField] private GameObject cam;
     [SerializeField] private Transform playerBody;
 
-    // Start is called before the first frame update
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
     }
 
-    // Update is called once per frame
     void Update()
     {
         MouseLook();

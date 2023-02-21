@@ -4,17 +4,18 @@ using UnityEngine;
 
 public class playerMovement : MonoBehaviour
 {
+    public static playerMovement Instance;
+
     public CharacterController controller;
 
     [Header("Movement")]
     [SerializeField] private float speed = 3f;
     [SerializeField] new Camera camera;
-    [SerializeField] new Camera holdingCamera;
-    [SerializeField] private float sprintFOV;
-    [SerializeField] private float walkFOV;
-    private float FOV;
+    [SerializeField] Camera holdingCamera;
+    private float sprintFOV = 75;
+    private float walkFOV = 60;
     private float x, z;
-    public bool isSprinting;
+    private bool isSprinting;
 
     [Header("Gravity")]
     private Vector3 velocity;
@@ -24,7 +25,7 @@ public class playerMovement : MonoBehaviour
     [SerializeField] private float crouchingSpeed;
     private float currentHeight;
     private float elapsedTime;
-    public bool isCrouching;
+    private bool isCrouching;
 
     [Header("GroundCheck")]
     [SerializeField] private Transform groundCheck;
@@ -36,6 +37,8 @@ public class playerMovement : MonoBehaviour
     [SerializeField] private KeyCode sprintKey = KeyCode.LeftShift;
     [SerializeField] private KeyCode crouchKey = KeyCode.C;
 
+
+    private void Awake() => Instance = this;
 
     void Update()
     {
@@ -65,7 +68,7 @@ public class playerMovement : MonoBehaviour
         //Gravity
 
         velocity.y += gravity * Time.deltaTime;
-        controller.Move(velocity *Time.deltaTime);
+        controller.Move(velocity * Time.deltaTime);
 
         //Moving the player
 
@@ -89,45 +92,32 @@ public class playerMovement : MonoBehaviour
         }
 
         //Movement State
+        float targetFOV = walkFOV;
 
-        if (isCrouching && (x != 0 || z != 0))
-        {
-            state = movementState.crouching;
-            speed = 2f;
-
-            camera.fieldOfView = Mathf.Lerp(camera.fieldOfView, walkFOV, 10 * Time.deltaTime);
-            holdingCamera.fieldOfView = Mathf.Lerp(camera.fieldOfView, walkFOV, 10 * Time.deltaTime);
-        }
-        else if(isSprinting && (x != 0 || z != 0)){
-            state = movementState.sprinting;
-            speed = 4f;
-
-            camera.fieldOfView = Mathf.Lerp(camera.fieldOfView, sprintFOV, 10 * Time.deltaTime);
-            holdingCamera.fieldOfView = Mathf.Lerp(camera.fieldOfView, sprintFOV, 10 * Time.deltaTime);
-        }
-        else if(x != 0 || z != 0){
-            state = movementState.walking;
-            speed = 3f;
-
-            camera.fieldOfView = Mathf.Lerp(camera.fieldOfView, walkFOV, 10 * Time.deltaTime);
-            holdingCamera.fieldOfView = Mathf.Lerp(camera.fieldOfView, walkFOV, 10 * Time.deltaTime);
-        }
-        else{
+        if(x == 0 && z == 0){
             state = movementState.still;
             speed = 0f;
 
-            camera.fieldOfView = Mathf.Lerp(camera.fieldOfView, walkFOV, 10 * Time.deltaTime);
-            holdingCamera.fieldOfView = Mathf.Lerp(camera.fieldOfView, walkFOV, 10 * Time.deltaTime);
+        }else if (isCrouching){
+            state = movementState.crouching;
+            speed = 2f;
+
+        }else if (isSprinting){
+            state = movementState.sprinting;
+            speed = 4f;
+
+            targetFOV = sprintFOV;
+
+        }else{
+            state = movementState.walking;
+            speed = 3f;
         }
 
-        if (camera.fieldOfView < 60.5f){
-            camera.fieldOfView = 60f;
-            holdingCamera.fieldOfView = 60f;
-        }
-        else if (camera.fieldOfView > 74.5f){
-            camera.fieldOfView = 75f;
-            holdingCamera.fieldOfView = 75f;
-        }
+        //Camera FOV
+        float actualFOV = Mathf.MoveTowards(camera.fieldOfView, targetFOV, 50 * Time.deltaTime);
+
+        camera.fieldOfView = actualFOV;
+        holdingCamera.fieldOfView = actualFOV;
     }
 
     void crouching()
@@ -141,12 +131,14 @@ public class playerMovement : MonoBehaviour
 
     void standing()
     {
+        //Check nothing is above us
         RaycastHit hit;
         if (Physics.Raycast(transform.position, transform.up, out hit, 2f)){
+            //If something is above us
             if (hit.distance < 2f - 0.5f){
                 controller.height = 0.5f;
                 isCrouching = true;
-
+            //If nothing is above us
             }else{
                 controller.height = Mathf.Lerp(currentHeight, 2f, Time.deltaTime * crouchingSpeed);
                 if (controller.height >= 1.95f){
@@ -154,7 +146,7 @@ public class playerMovement : MonoBehaviour
                 }
                 currentHeight = controller.height;
             }
-
+        //If the raycast hits nothing
         }else{
             controller.height = Mathf.Lerp(currentHeight, 2f, Time.deltaTime * crouchingSpeed);
             if (controller.height >= 1.905){

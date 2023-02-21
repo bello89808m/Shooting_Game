@@ -80,6 +80,8 @@ public class interactDoor : MonoBehaviour {
         isMoving = false;
     }
 
+
+
     public void close()
     {
         if (isOpen)
@@ -89,11 +91,11 @@ public class interactDoor : MonoBehaviour {
                 StopCoroutine(animationCoroutine);
             }
 
-            animationCoroutine = StartCoroutine(doRotationClose());
+            animationCoroutine = StartCoroutine(doClose());
         }
     }
 
-    public IEnumerator doRotationClose()
+    public IEnumerator doClose()
     {
         Vector3 startPosition = transform.localPosition;
         Vector3 endPosition = startingPosition;

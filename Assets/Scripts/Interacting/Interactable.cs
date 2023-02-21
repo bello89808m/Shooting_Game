@@ -4,6 +4,7 @@ using UnityEngine;
 
 public abstract class Interactable : MonoBehaviour
 {
+    //what Type
     public enum InteractionType
     {
         Click,
@@ -12,14 +13,22 @@ public abstract class Interactable : MonoBehaviour
 
     public InteractionType interactiontype;
 
+    //Hold interacts
     public float holdTime;
     public void holdingTime() => holdTime += Time.deltaTime;
     public void resetTime() => holdTime = 0;
     public float getHoldTime() => holdTime;
 
+    //turn on/off
     public bool canInteract = true;
 
+    //fundamentals
     public abstract void interact();
     public abstract string getDescription();
     public abstract KeyCode definedKey();
+}
+
+public interface IHold
+{
+    public string getDescription();
 }
