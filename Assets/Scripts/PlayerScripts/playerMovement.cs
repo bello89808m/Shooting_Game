@@ -4,9 +4,7 @@ using UnityEngine;
 
 public class playerMovement : MonoBehaviour
 {
-    public static playerMovement Instance;
-
-    public CharacterController controller;
+    [SerializeField] private CharacterController controller;
 
     [Header("Movement")]
     [SerializeField] private float speed = 3f;
@@ -24,21 +22,17 @@ public class playerMovement : MonoBehaviour
     [Header("Crouch")]
     [SerializeField] private float crouchingSpeed;
     private float currentHeight;
-    private float elapsedTime;
     private bool isCrouching;
 
     [Header("GroundCheck")]
     [SerializeField] private Transform groundCheck;
     [SerializeField] private LayerMask groundMask;
-    public float groundDistance;
+    [SerializeField] private float groundDistance;
     private bool isGrounded;
 
     [Header("Keybinds")]
     [SerializeField] private KeyCode sprintKey = KeyCode.LeftShift;
     [SerializeField] private KeyCode crouchKey = KeyCode.C;
-
-
-    private void Awake() => Instance = this;
 
     void Update()
     {
