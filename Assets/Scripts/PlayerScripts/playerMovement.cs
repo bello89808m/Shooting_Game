@@ -32,7 +32,7 @@ public class playerMovement : MonoBehaviour
 
     [Header("Keybinds")]
     [SerializeField] private KeyCode sprintKey = KeyCode.LeftShift;
-    [SerializeField] private KeyCode crouchKey = KeyCode.C;
+    [SerializeField] private KeyCode crouchKey = KeyCode.LeftControl;
 
     void Update()
     {
@@ -116,7 +116,8 @@ public class playerMovement : MonoBehaviour
 
     void crouching()
     {
-        controller.height = Mathf.Lerp(currentHeight, 0.5f, Time.deltaTime * crouchingSpeed);
+        //Move Towards this height
+        controller.height = Mathf.MoveTowards(currentHeight, 0.5f, Time.deltaTime * crouchingSpeed);
         if (controller.height <= 0.55f){
             controller.height = 0.2f;
         }

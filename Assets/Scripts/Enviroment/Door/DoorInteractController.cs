@@ -11,11 +11,8 @@ public class DoorInteractController : Interactable
 
     public override string getDescription()
     {
-        if(Door.isMoving && !Door.isOpen){
-            return "Opening Door";
-        }
-        else if(Door.isMoving && Door.isOpen){
-            return "Closing Door";
+        if(Door.isMoving){
+            return "";
         }
         else if (Door.isOpen){
             return "[E] Close Door";

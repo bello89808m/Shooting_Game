@@ -31,4 +31,6 @@ public abstract class Interactable : MonoBehaviour
 public interface IHold
 {
     public string getDescription();
+
+    public void onInteract();
 }

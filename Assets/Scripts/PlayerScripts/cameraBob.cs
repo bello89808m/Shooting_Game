@@ -36,10 +36,10 @@ public class cameraBob : MonoBehaviour
         ResetPosition();
 
         if ((playerSpeed.state == playerMovement.movementState.walking || playerSpeed.state == playerMovement.movementState.sprinting) && controller.height >= 2f) {
-            PlayMotion(FootSteps(5f, 0.0017f));
+            PlayMotion(FootSteps(5f, 0.00215f));
 
         } else if(playerSpeed.state == playerMovement.movementState.crouching){
-            PlayMotion(FootSteps(4f, 0.0015f));
+            PlayMotion(FootSteps(3.75f, 0.0015f));
         }
     }
 

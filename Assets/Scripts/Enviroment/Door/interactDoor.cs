@@ -15,8 +15,6 @@ public class interactDoor : MonoBehaviour {
 
     private Coroutine animationCoroutine;
 
-
-
     public void Awake()
     {
         startingPosition = transform.localPosition;
@@ -54,6 +52,7 @@ public class interactDoor : MonoBehaviour {
         if (transform.localPosition.y != 6)
             transform.localPosition = new Vector3(transform.localPosition.x, distance, transform.localPosition.z);
 
+        yield return new WaitForEndOfFrame();
         isOpen = true;
         isMoving = false;
 
@@ -75,7 +74,7 @@ public class interactDoor : MonoBehaviour {
         if (transform.localPosition.y != 0)
             transform.localPosition = new Vector3(transform.localPosition.x, 0, transform.localPosition.z);
 
-
+        yield return new WaitForEndOfFrame();
         isOpen = false;
         isMoving = false;
     }
@@ -113,6 +112,8 @@ public class interactDoor : MonoBehaviour {
         if (transform.localPosition.y != 0)
             transform.localPosition = new Vector3(transform.localPosition.x, 0, transform.localPosition.z);
 
+
+        yield return new WaitForEndOfFrame();
         isOpen = false;
         isMoving = false;
     }

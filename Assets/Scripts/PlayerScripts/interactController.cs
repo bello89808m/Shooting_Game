@@ -29,6 +29,7 @@ public class interactController : MonoBehaviour
 
             if (interacting != null && interacting.canInteract)
             {
+                //If we actually interact with it
                 HandleInteraction(interacting);
 
                 hitSomething = true;
