@@ -7,7 +7,7 @@ public class pickUp2 : MonoBehaviour, IHold
 {
     [SerializeField] private Rigidbody objBody;
 
-    public string getDescription() => "[E] Pick Up " + this.name;
+    public string getDescription() => "Pick Up " + this.name;
 
     public void onInteract()
     {
