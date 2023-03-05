@@ -124,6 +124,7 @@ public class playerMovement : MonoBehaviour
         currentHeight = controller.height;
     }
 
+    //This needs to be fixed but I'm just too lazy to
     void standing()
     {
         //Check nothing is above us
@@ -135,7 +136,7 @@ public class playerMovement : MonoBehaviour
                 isCrouching = true;
             //If nothing is above us
             }else{
-                controller.height = Mathf.Lerp(currentHeight, 2f, Time.deltaTime * crouchingSpeed);
+                controller.height = Mathf.MoveTowards(currentHeight, 2f, Time.deltaTime * crouchingSpeed);
                 if (controller.height >= 1.95f){
                     controller.height = 2f;
                 }
@@ -143,7 +144,7 @@ public class playerMovement : MonoBehaviour
             }
         //If the raycast hits nothing
         }else{
-            controller.height = Mathf.Lerp(currentHeight, 2f, Time.deltaTime * crouchingSpeed);
+            controller.height = Mathf.MoveTowards(currentHeight, 2f, Time.deltaTime * crouchingSpeed);
             if (controller.height >= 1.905){
                 controller.height = 2f;
 
