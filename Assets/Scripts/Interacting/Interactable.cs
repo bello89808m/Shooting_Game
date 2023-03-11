@@ -25,15 +25,4 @@ public abstract class Interactable : MonoBehaviour
     //fundamentals
     public abstract void interact();
     public abstract string getDescription();
-    public abstract KeyCode definedKey();
 }
-
-//Might be useful later
-/*public interface IHold
-{
-    public string getDescription();
-
-    public Rigidbody getObjBody();
-
-    public Transform getTransformArea();
-}*/
