@@ -2,12 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class place : MonoBehaviour
+public class place : MonoBehaviour, IPlace
 {
     [SerializeField] private Collider getCollider;
-    [SerializeField] private string description;
 
-    public string getDescription() => description;
+    public string getDescription(GameObject name) => "Place " + name.name;
 
     public Transform getPlaceArea() => transform;
 

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public abstract class Interactable : MonoBehaviour
 {
@@ -25,4 +26,18 @@ public abstract class Interactable : MonoBehaviour
     //fundamentals
     public abstract void interact();
     public abstract string getDescription();
+}
+
+public interface IPlace
+{
+    public string getDescription(GameObject name);
+
+    public Transform getPlaceArea();
+}
+
+public interface IPick
+{
+    public string getDesc();
+
+    public Transform getTransformArea();
 }
