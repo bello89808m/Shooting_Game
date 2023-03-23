@@ -14,17 +14,23 @@ namespace player
         RaycastHit hit;
 
         [Header("Cursor")]
-        [SerializeField] private GameObject isLookingAt;
+        [SerializeField] private GameObject isLookingAtCursor;
         [SerializeField] private GameObject cursor;
         [SerializeField] private Image interactionProgress;
         [SerializeField] private TextMeshProUGUI description;
 
         [Header("Pick Up System")]
-        [SerializeField] private GameObject pickUpObj = null;
         [SerializeField] private GameObject[] objInv = new GameObject[3];
+        [SerializeField] public GameObject pickUpObj;
         private int holdingNum = 0;
         private int lastHoldingNum;
         private Transform originalTrans;
+
+        [Header("Interact System")]
+        private float lastInteractTime = 0;
+        private float holdTime = 0;
+
+        
 
         void Update()
         {
@@ -40,27 +46,38 @@ namespace player
                 //if we hit an object that's interactable
                 if (hit.collider.TryGetComponent<Interactable>(out Interactable interacting))
                 {
-                    //Set the cursor active
-                    isLookingAt.SetActive(true);
-                    interact(interacting);
+                    isLookingAtCursor.SetActive(true);
+                    //Get what we're doing with the interactable
+                    description.text = interacting.getDescription();
+
+                    //If we actually interact with it/press E
+                    HandleInteraction(interacting);
 
                     //If we look at something that can be picked up
                 } else if (hit.collider.TryGetComponent<IPick>(out IPick selectedObj)) {
 
                     //Set the cursor active 
-                    isLookingAt.SetActive(true);
+                    isLookingAtCursor.SetActive(true);
                     pickUpSystem(selectedObj);
 
                     //If we look at something where we can place our object
                 } else if (hit.collider.TryGetComponent<IPlace>(out IPlace placeObj)) {
 
                     //Set the cursor active
-                    isLookingAt.SetActive(true);
-                    dropSystem(placeObj);
+                    isLookingAtCursor.SetActive(true);
+                    //Check we aren't holding are
+                    if (pickUpObj != null)
+                    {
+                        //Get what we're doing with the interactable
+                        description.text = placeObj.getDescription(pickUpObj);
+
+                        //if we click it run the place script
+                        if (Input.GetKeyDown(KeyCode.Mouse0)) drop(placeObj.getPlaceArea());
+                    }
                 }
             }
 
-            if (!hitSomething) { isLookingAt.SetActive(false); description.text = ""; }
+            if (!hitSomething) { isLookingAtCursor.SetActive(false); description.text = ""; }
 
             pickUpObj = objInv[holdingNum] != null ? objInv[holdingNum] : null;
 
@@ -71,25 +88,13 @@ namespace player
 
         //**************************************************************************************************************
 
-        void interact(Interactable interacting)
+        public void HandleInteraction(Interactable interactable)
         {
-            //Get what we're doing with the interactable
-            description.text = interacting.getDescription();
-
-            if (!interacting.canInteract) return;
-
-            //If we actually interact with it/press E
-            HandleInteraction(interacting);
-        }
-
-        //**************************************************************************************************************
-
-        void HandleInteraction(Interactable interactable)
-        {
-            switch (interactable.interactiontype)
+            switch (interactable.getType())
             {
                 //If we want the type to be click
                 case Interactable.InteractionType.Click:
+
                     if (Input.GetKeyDown(KeyCode.E))
                     {
                         //run the interact function
@@ -99,25 +104,34 @@ namespace player
 
                 //If we want the type to be hold
                 case Interactable.InteractionType.Hold:
-                    if (Input.GetKey(KeyCode.E))
-                    {
-                        //start a timer where we add to a float using deltaTime
-                        interactable.holdingTime();
-                        //set the amount filled to correspond to how long you've been holding it
-                        interactionProgress.fillAmount = interactable.getHoldTime();
 
-                        //if we go the full way
-                        if (interactable.getHoldTime() > 1.0f)
+                    if(lastInteractTime + 5f < Time.time)
+                    {
+                        if (Input.GetKey(KeyCode.E))
                         {
-                            //run the interact script then set the time to 0
-                            interactable.interact();
-                            interactable.resetTime();
+                            //start a timer where we add to a float using deltaTime
+                            holdTime += Time.deltaTime;
+                            //set the amount filled to correspond to how long you've been holding it
+                            interactionProgress.fillAmount = holdTime;
+
+                            //if we go the full way
+                            if (holdTime > 1.0f)
+                            {
+                                //run the interact script then set the time to 0
+                                interactable.interact();
+                                holdTime = 0;
+                                lastInteractTime = Time.time;
+                            }
+
+                        } else {
+                            //if we let go, reset the time and set the progress amount to 1, so we don't break the cursor
+                            holdTime = 0;
+                            interactionProgress.fillAmount = 1;
                         }
 
                     } else {
-                        //if we let go, reset the time and set the progress amount to 1, so we don't break the cursor
-                        interactable.resetTime();
-                        interactionProgress.fillAmount = 1;
+                        isLookingAtCursor.SetActive(false);
+                        description.text = "";
                     }
 
                     break;
@@ -164,6 +178,7 @@ namespace player
             } if (Input.GetKeyDown(KeyCode.Alpha3)) {
                 lastHoldingNum = holdingNum;
                 holdingNum = 2;
+
                 //Make it so we can press Q and switch to the thing we were holding last
             } else if (Input.GetKeyDown(KeyCode.Q)) {
                 int holdingNumHolder = holdingNum;
@@ -233,21 +248,6 @@ namespace player
 
             //Set the layer to holding for the camera
             pickUp.layer = LayerMask.NameToLayer("Holding");
-        }
-
-        //**************************************************************************************************************
-
-        void dropSystem(IPlace placeObj)
-        {
-            //Check we aren't holding are
-            if (pickUpObj != null)
-            {
-                //Get what we're doing with the interactable
-                description.text = placeObj.getDescription(pickUpObj);
-
-                //if we click it run the place script
-                if (Input.GetKeyDown(KeyCode.Mouse0)) drop(placeObj.getPlaceArea());
-            }
         }
 
         //**************************************************************************************************************

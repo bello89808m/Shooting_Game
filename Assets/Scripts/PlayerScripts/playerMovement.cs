@@ -189,5 +189,4 @@ namespace player
             holdingCamera.fieldOfView = actualFOV;
         }
     }
-
 }

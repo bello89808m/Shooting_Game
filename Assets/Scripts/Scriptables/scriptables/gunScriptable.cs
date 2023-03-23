@@ -40,6 +40,7 @@ public class gunScriptable : ScriptableObject
 
     [Header("Gun Type")]
     public gunType guntype;
+
     public enum gunType
     {
         fullAuto,

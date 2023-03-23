@@ -2,15 +2,20 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Interact : Interactable
+public class Interact : MonoBehaviour, Interactable
 {
-    public override string getDescription()
+    public string getDescription()
     {
         return "[E] Pick Up";
     }
 
-    public override void interact()
+    public void interact()
     {
         Debug.Log("working");
+    }
+
+    Interactable.InteractionType Interactable.getType()
+    {
+        return Interactable.InteractionType.Hold;
     }
 }

@@ -33,13 +33,13 @@ namespace player
             switch (playerSpeed.state)
             {
                 case playerMovement.movementState.walking:
-                    PlayMotion(FootSteps(6f, 0.004f));
+                    PlayMotion(FootSteps(6f, 0.002f));
                     break;
                 case playerMovement.movementState.sprinting:
-                    PlayMotion(FootSteps(8f, 0.0045f));
+                    PlayMotion(FootSteps(8f, 0.0025f));
                     break;
                 case playerMovement.movementState.crouching:
-                    PlayMotion(FootSteps(4f, 0.0035f));
+                    PlayMotion(FootSteps(4f, 0.0015f));
                     break;
                 default:
                     PlayMotion(FootSteps(0f, 0f));

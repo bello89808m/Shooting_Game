@@ -38,6 +38,7 @@ public class interactDoor : MonoBehaviour {
 
     private IEnumerator doOpen()
     {
+ 
         //self explanatory
         Vector3 startPosition = transform.localPosition;
         Vector3 endPosition = transform.localPosition += Vector3.up * distance;

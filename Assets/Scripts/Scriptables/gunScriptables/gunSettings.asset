@@ -22,14 +22,14 @@ MonoBehaviour:
   recoilTargetPush: 0.7
   maxPosRecoil: 0.6
   rotRecoilReturnSpeed: 10
-  posRecoilReturnSpeed: 5
-  recoilX: 2
-  recoilY: 0
-  recoilZ: 0
-  recoilReturn: 4
-  snappiness: 6
-  swayMultiplier: 400
+  posRecoilReturnSpeed: 2
+  recoilX: 1
+  recoilY: 0.1
+  recoilZ: 0.1
+  recoilReturn: 2
+  snappiness: 2
+  swayMultiplier: 100
   swaySmooth: 10
-  frequency: 2
-  amplitude: 0.5
+  frequency: 4
+  amplitude: 0.12
   guntype: 0

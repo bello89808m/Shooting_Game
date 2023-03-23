@@ -1,9 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using player;
 using Unity.VisualScripting;
 using System.Threading;
+using player;
 
 public class gunShoot : MonoBehaviour, IPick
 {
@@ -21,6 +21,8 @@ public class gunShoot : MonoBehaviour, IPick
     private Vector3 camCurrentRot;
 
     private Vector3 startPos;
+
+    private Vector3 gunBobPos = Vector3.zero;
 
     public string getDesc() => "Pick up " + settings.gunName;
 
@@ -58,13 +60,38 @@ public class gunShoot : MonoBehaviour, IPick
     {
         if (Input.GetAxisRaw("Horizontal") + Input.GetAxisRaw("Vertical") != 0)
         {
-            Vector3 gunBob = Vector3.zero;
-            gunBob.x += -(Mathf.Abs(Mathf.Sin(Time.time * settings.frequency) * settings.amplitude));
+            float swayMultiplier = frequencyMultiplier();
 
-            transform.localPosition = gunBob;
-        } else {
-            if (transform.localPosition != Vector3.zero)
-                transform.localPosition = Vector3.Lerp(transform.localPosition, new Vector3(0, transform.localPosition.y, transform.localPosition.z), Time.deltaTime * 5f);
+            gunBobPos.x += Mathf.Cos(Time.time * (settings.frequency/2 * swayMultiplier)) * settings.amplitude/2;
+            gunBobPos.y += Mathf.Sin(Time.time * (settings.frequency * swayMultiplier)) * settings.amplitude;
+            gunBobPos.z = transform.localPosition.z;
+
+            transform.localPosition = gunBobPos;
+        }
+        resetBob();
+    }
+
+    void resetBob()
+    {
+        if (transform.localPosition != Vector3.zero)
+        {
+            transform.localPosition = Vector3.Lerp(transform.localPosition, new Vector3(0, 0, transform.localPosition.z), Time.deltaTime * 5f);
+            gunBobPos = Vector3.zero;
+        }
+    }
+
+    float frequencyMultiplier()
+    {
+        var moveState = FindObjectOfType<playerMovement>();
+
+        switch (moveState.state)
+        {
+            case playerMovement.movementState.sprinting:
+                return 2;
+            case playerMovement.movementState.crouching:
+                return 0.85f;
+            default:
+                return 1;
         }
     }
 

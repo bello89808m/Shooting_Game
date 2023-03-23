@@ -3,34 +3,38 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.ProBuilder.Shapes;
 
-public class DoorInteractController : Interactable
+public class DoorInteractController : MonoBehaviour, Interactable
 {
     [SerializeField] private interactDoor Door;
     [SerializeField] private Transform playerLocation;
 
 
-    public override string getDescription()
+    public string getDescription()
     {
         if(Door.isMoving){
             return "";
-        }
-        else if (Door.isOpen){
+
+        }else if (Door.isOpen){
             return "[E] Close Door";
-        }
-        else{
+            
+        }else{
             return "[E] Open Door";
         }
     }
 
-    public override void interact()
+    public void interact()
     {
         if (Door.isOpen && !Door.isMoving)
         {
             Door.close();
-        }
-        else if(!Door.isOpen && !Door.isMoving)
-        {
+
+        }else if(!Door.isOpen && !Door.isMoving){
             Door.open();
         }
+    }
+
+    Interactable.InteractionType Interactable.getType()
+    {
+        return Interactable.InteractionType.Click;
     }
 }
