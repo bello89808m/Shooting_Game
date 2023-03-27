@@ -22,6 +22,12 @@ public class DoorInteractController : MonoBehaviour, Interactable
         }
     }
 
+    public bool getDownTime()
+    {
+        if (Door.isMoving) return true;
+        else return false;
+    }
+
     public void interact()
     {
         if (Door.isOpen && !Door.isMoving)

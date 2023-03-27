@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9f9b1ce50b27a4e0386f95d2f0e48c3d, type: 3}
-  m_Name: gunSettings
+  m_Name: singleFireGunScriptable
   m_EditorClassIdentifier: 
   gunName: Test Gun
   bullet: {fileID: 1524345498970761785, guid: 0c6b8ffb52f9846e1990d5bca7016108, type: 3}
@@ -19,17 +19,18 @@ MonoBehaviour:
   bulletSpeed: 100
   bulletDistance: 50
   recoilTargetRot: 30
-  recoilTargetPush: 0.7
-  maxPosRecoil: 0.6
-  rotRecoilReturnSpeed: 10
+  recoilTargetPush: 0.205
+  maxPosRecoil: 1
+  rotRecoilReturnSpeed: 1
   posRecoilReturnSpeed: 2
-  recoilX: 1
-  recoilY: 0.1
-  recoilZ: 0.1
-  recoilReturn: 2
-  snappiness: 2
-  swayMultiplier: 100
+  recoilX: 5
+  recoilY: 0.75
+  recoilZ: 0.75
+  recoilReturn: 4
+  snappiness: 5
+  swayXMultiplier: 110
+  swayYMultiplier: 150
   swaySmooth: 10
   frequency: 4
   amplitude: 0.12
-  guntype: 0
+  guntype: 1

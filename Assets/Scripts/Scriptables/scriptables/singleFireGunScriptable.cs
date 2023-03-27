@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 [CreateAssetMenu(fileName = "gunSettings", menuName = "scriptables")]
-public class gunScriptable : ScriptableObject
+public class singleFireGunScriptable : ScriptableObject
 {
     [Header("Gun Settings")]
     public string gunName;
@@ -31,12 +31,17 @@ public class gunScriptable : ScriptableObject
     public float snappiness;
 
     [Header("Sway Total")]
-    public float swayMultiplier;
+    public float swayXMultiplier;
+    public float swayYMultiplier;
     public float swaySmooth;
 
     [Header("Gun Bob")]
     public float frequency;
     public float amplitude;
+
+    [Header("Reload")]
+    public int ammoMag;
+    public int ammoCount;
 
     [Header("Gun Type")]
     public gunType guntype;

@@ -20,8 +20,8 @@ namespace player
         [SerializeField] private TextMeshProUGUI description;
 
         [Header("Pick Up System")]
-        [SerializeField] private GameObject[] objInv = new GameObject[3];
-        [SerializeField] public GameObject pickUpObj;
+        private GameObject[] objInv = new GameObject[3];
+        public GameObject pickUpObj { get; private set; }
         private int holdingNum = 0;
         private int lastHoldingNum;
         private Transform originalTrans;
@@ -29,8 +29,6 @@ namespace player
         [Header("Interact System")]
         private float lastInteractTime = 0;
         private float holdTime = 0;
-
-        
 
         void Update()
         {
@@ -77,13 +75,14 @@ namespace player
                 }
             }
 
+            //if we are not hitting something, set these things to null except not really null but just pretend ok
             if (!hitSomething) { isLookingAtCursor.SetActive(false); description.text = ""; }
 
+            //Set our pick up obj to whatever we're holding
             pickUpObj = objInv[holdingNum] != null ? objInv[holdingNum] : null;
 
+            //Check for our inputs
             inputs();
-
-            inventorySorter();
         }
 
         //**************************************************************************************************************
@@ -95,17 +94,25 @@ namespace player
                 //If we want the type to be click
                 case Interactable.InteractionType.Click:
 
-                    if (Input.GetKeyDown(KeyCode.E))
+                    if (!interactable.getDownTime())
                     {
-                        //run the interact function
-                        interactable.interact();
+                        if (Input.GetKeyDown(KeyCode.E))
+                        {
+                            //run the interact function
+                            interactable.interact();
+                        }
+                    } else {
+                        isLookingAtCursor.SetActive(false);
+                        description.text = "";
                     }
+
                     break;
 
                 //If we want the type to be hold
                 case Interactable.InteractionType.Hold:
 
-                    if(lastInteractTime + 5f < Time.time)
+                    //Downtime. Will add to the other version as well, but may need change the text part.
+                    if(!interactable.getDownTime())
                     {
                         if (Input.GetKey(KeyCode.E))
                         {
@@ -171,33 +178,46 @@ namespace player
                 lastHoldingNum = holdingNum;
                 holdingNum = 0;
 
-            } else if (Input.GetKeyDown(KeyCode.Alpha2)) {
+            }
+            else if (Input.GetKeyDown(KeyCode.Alpha2))
+            {
                 lastHoldingNum = holdingNum;
                 holdingNum = 1;
 
-            } if (Input.GetKeyDown(KeyCode.Alpha3)) {
+            }
+            else if (Input.GetKeyDown(KeyCode.Alpha3))
+            {
                 lastHoldingNum = holdingNum;
                 holdingNum = 2;
 
                 //Make it so we can press Q and switch to the thing we were holding last
-            } else if (Input.GetKeyDown(KeyCode.Q)) {
+            }
+            else if (Input.GetKeyDown(KeyCode.Q))
+            {
                 int holdingNumHolder = holdingNum;
                 holdingNum = lastHoldingNum;
                 lastHoldingNum = holdingNumHolder;
             }
+
+            inventorySorter();
+
+            if (objInv[holdingNum] != null) objInv[holdingNum].GetComponentInChildren<Animator>().SetTrigger("startAnim");
         }
 
         //**************************************************************************************************************
 
         void inventorySorter()
         {
+
             foreach (GameObject holdObjCheck in objInv)
             {
                 if (holdObjCheck == objInv[holdingNum] && holdObjCheck != null)
                 {
                     holdObjCheck.SetActive(true);
 
-                } else if (holdObjCheck != objInv[holdingNum] && holdObjCheck != null) {
+                }
+                else if (holdObjCheck != objInv[holdingNum] && holdObjCheck != null)
+                {
                     holdObjCheck.SetActive(false);
                 }
             }
@@ -221,8 +241,6 @@ namespace player
 
                 } else if (pickUpObj != null) {
                     drop(hit.transform);
-                    pickUpObj.transform.SetParent(null);
-
 
                     objInv[holdingNum] = hit.transform.gameObject;
                 }
@@ -235,16 +253,16 @@ namespace player
         //**************************************************************************************************************
 
         void pickUp(GameObject pickUp, Transform holdArea)
-        { 
+        {
             //Set out object to be parented to where we want it to go after holding it
             pickUp.transform.SetParent(holdArea);
             //idk this is a quality of life thing for me I just like it
             pickUp.transform.SetSiblingIndex(holdingNum);
 
+            //pickUp.transform.GetChild(0).GetComponent<Animator>().SetTrigger("startAnim");
+
             //Make sure that the rotations, positions, and scale match to what we want when picking it up
-            pickUp.transform.localPosition = Vector3.zero;
-            pickUp.transform.localRotation = Quaternion.Euler(Vector3.zero);
-            pickUp.transform.localScale = Vector3.one;
+            setArea(pickUp);
 
             //Set the layer to holding for the camera
             pickUp.layer = LayerMask.NameToLayer("Holding");
@@ -255,18 +273,25 @@ namespace player
         void drop(Transform placeArea)
         {
             //Set the parent to where we want to place it
-            pickUpObj.transform.SetParent(placeArea);
+            objInv[holdingNum].transform.SetParent(placeArea);
 
             //Make sure that the rotations, positions, and scale match to what we want when placing it
-            pickUpObj.transform.localPosition = Vector3.zero;
-            pickUpObj.transform.localRotation = Quaternion.Euler(Vector3.zero);
-            pickUpObj.transform.localScale = Vector3.one;
+            setArea(objInv[holdingNum]);
 
             //Make the layer the default, enviroment layer
-            pickUpObj.layer = LayerMask.NameToLayer("Default");
+            objInv[holdingNum].layer = LayerMask.NameToLayer("Default");
+
+            objInv[holdingNum].transform.SetParent(null);
 
             //remove the object from our inventory
             objInv[holdingNum] = null;
+        }
+
+        void setArea(GameObject Object)
+        {
+            Object.transform.localPosition = Vector3.zero;
+            Object.transform.localRotation = Quaternion.Euler(Vector3.zero);
+            Object.transform.localScale = Vector3.one;
         }
     }
 }

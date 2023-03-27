@@ -3,22 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public abstract class InteractableInterfaces : MonoBehaviour
-{
-    //what Type
-    public enum InteractionType
-    {
-        Click,
-        Hold
-    }
-
-    public InteractionType interactiontype;
-
-    //fundamentals
-    public abstract void interact();
-    public abstract string getDescription();
-}
-
 public interface Interactable
 {
     //what Type
@@ -30,6 +14,7 @@ public interface Interactable
 
     //fundamentals
     public void interact();
+    public bool getDownTime();
     public string getDescription();
     public InteractionType getType();
 }
@@ -46,4 +31,11 @@ public interface IPick
     public string getDesc();
 
     public Transform getTransformArea();
+}
+
+public interface IFunction
+{
+    public void doThis();
+
+    public bool canFunc();
 }

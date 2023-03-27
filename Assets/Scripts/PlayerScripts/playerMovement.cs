@@ -12,7 +12,7 @@ namespace player
         [SerializeField] new Camera camera;
         [SerializeField] Camera holdingCamera;
         [SerializeField] public float speed { get; private set; } = 3f;
-        [SerializeField] private float sprintFOV = 75;
+        [SerializeField] private float sprintFOV = 65;
         [SerializeField] private float walkFOV = 60;
         private float x, z;
         private bool isSprinting;
@@ -89,6 +89,7 @@ namespace player
 
         //**************************************************************************************************************
 
+        //Who thought crouching would be so hard? Like seriously this wasted genuine days because I just couldn't think of a good solution and needed a tutorial to see how to change this. God damn you 2022 December me
         void crouching()
         {
             //Move Towards this height
@@ -143,10 +144,7 @@ namespace player
             //Create a sphere at the bottom of the player and see if theres something hitting it
             isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
 
-            if (isGrounded && velocity.y < 0)
-            {
-                velocity.y = -3.5f;
-            }
+            if (isGrounded && velocity.y < 0)velocity.y = -3.5f;
 
             //Gravity
             //idk the math here but add the current velocity of the character, -3.5, to the gravity and move it at a constant rate
