@@ -18,19 +18,21 @@ MonoBehaviour:
   shootDelay: 0.1
   bulletSpeed: 100
   bulletDistance: 50
-  recoilTargetRot: 30
+  recoilTargetRot: 20
   recoilTargetPush: 0.205
   maxPosRecoil: 1
   rotRecoilReturnSpeed: 1
   posRecoilReturnSpeed: 2
-  recoilX: 5
-  recoilY: 0.75
-  recoilZ: 0.75
-  recoilReturn: 4
-  snappiness: 5
+  recoilX: 3
+  recoilY: 2
+  recoilZ: 2
+  recoilReturn: 3
+  snappiness: 4
   swayXMultiplier: 110
   swayYMultiplier: 150
   swaySmooth: 10
   frequency: 4
   amplitude: 0.12
-  guntype: 1
+  ammoMag: 5
+  ammoCount: 10
+  guntype: 0

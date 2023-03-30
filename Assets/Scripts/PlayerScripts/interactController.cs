@@ -15,8 +15,8 @@ namespace player
 
         [Header("Cursor")]
         [SerializeField] private GameObject isLookingAtCursor;
-        [SerializeField] private GameObject cursor;
         [SerializeField] private Image interactionProgress;
+        [SerializeField] private GameObject cursor;
         [SerializeField] private TextMeshProUGUI description;
 
         [Header("Pick Up System")]

@@ -4,7 +4,7 @@ using UnityEngine;
 using TMPro;
 using player;
 
-public class gunShoot : MonoBehaviour, IPick, IFunction
+public class gunShoot : MonoBehaviour, IPick
 {
     [Header("Gun Transforms")]
     [SerializeField] private Transform holdArea;
@@ -39,17 +39,12 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
     private int gunMag;
     private int totalAmmo;
 
+    //Reload
+    private bool reloading;
+
     //IPick settings
     public string getDesc() => "Pick up " + settings.gunName;
     public Transform getTransformArea() => holdArea;
-
-    //IFunction settings
-    public void doThis() => shootType();
-    public bool canFunc()
-    {
-        if (anim.GetCurrentAnimatorStateInfo(0).IsName("Idle")) return true;
-        else return false;
-    }
 
     void Awake() { gunMag = settings.ammoMag; totalAmmo = settings.ammoCount; }
 
@@ -59,7 +54,8 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
         if (transform.parent == holdArea)
         {
             gunMoveController();
-            recoilController();
+            shootType();
+
         } else {
             ammoCount.text = "";
         }
@@ -132,18 +128,29 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
 
     void shootType()
     {
+        recoilController();
         //Check what kind of firing mode we have
+        if(reloading) ammoCount.text = "Reloading";
+        else ammoCount.SetText(gunMag + "/" + totalAmmo);
+        if (!anim.GetCurrentAnimatorStateInfo(0).IsName("Idle") || reloading) return;
         switch (settings.guntype)
         {
             //If its full auto, call the shoot script when we're holding the mouse down
             case singleFireGunScriptable.gunType.fullAuto:
+                if(Input.GetKey(KeyCode.Mouse0)){
+                    if (gunMag == 0 && totalAmmo != 0) reload();
+                    else if (!(gunMag == 0))shoot();
+                }
 
-                if (Input.GetKey(KeyCode.Mouse0)) shoot();
                 break;
 
             //If it's semi auto, call every time we click
             case singleFireGunScriptable.gunType.semiAuto:
-                if (Input.GetKeyDown(KeyCode.Mouse0)) shoot();
+                if (Input.GetKeyDown(KeyCode.Mouse0)){
+                    if (gunMag == 0 && totalAmmo != 0) reload();
+                    else if (!(gunMag == 0)) shoot();
+                }
+
                 break;
 
             //how tf can I get this case?
@@ -152,14 +159,23 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
                 break;
         }
 
-
-
-        if(Input.GetKeyDown(KeyCode.R)) 
+        if (Input.GetKeyDown(KeyCode.R) && totalAmmo != 0) reload();
     }
 
     void reload()
     {
+        StartCoroutine(waitFFS());
+    }
 
+    IEnumerator waitFFS()
+    {
+        reloading = true;
+        yield return new WaitForSeconds(1f);
+
+        int reloadAmount = settings.ammoMag - gunMag;
+        gunMag += reloadAmount;
+        totalAmmo -= reloadAmount;
+        reloading = false;
     }
 
     void shoot()
@@ -172,6 +188,7 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
             //create a bullet from the bullet prefab
             recoil();
 
+            gunMag--;
             GameObject bullet = Instantiate(settings.bullet, shootArea.transform.position, Quaternion.identity);
 
             //If we hit something
@@ -191,8 +208,11 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
     {
         //get the distance we want to travel by subtracting the place we hit with where our bullet will be shot
         Vector3 travelDistance = hitPoint - shootArea.position;
+
         //add a force to the bullet using the direction our bullet hit multiplied by the bullet speed and using the Impulse mode in order to make sure to add an instant force
         bullet.GetComponent<Rigidbody>().AddForce(travelDistance.normalized * settings.bulletSpeed, ForceMode.Impulse);
+
+        //decrease the bullets in the mag
     }
 
     void recoilController()

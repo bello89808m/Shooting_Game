@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
+using TMPro;
 
 [CreateAssetMenu(fileName = "gunSettings", menuName = "scriptables")]
 public class singleFireGunScriptable : ScriptableObject
