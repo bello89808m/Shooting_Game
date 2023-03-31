@@ -32,3 +32,9 @@ public interface IPick
 
     public Transform getTransformArea();
 }
+
+public interface IFunction
+{
+    public bool canFunc();
+    public void doThis();
+}

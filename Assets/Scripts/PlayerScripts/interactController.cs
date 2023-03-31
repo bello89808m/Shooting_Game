@@ -25,6 +25,7 @@ namespace player
         private int holdingNum = 0;
         private int lastHoldingNum;
         private Transform originalTrans;
+        private bool hitSomething;
 
         [Header("Interact System")]
         private float lastInteractTime = 0;
@@ -34,7 +35,7 @@ namespace player
         {
             //Launch a ray from the center of the camera
             Ray ray = cam.ViewportPointToRay(Vector3.one / 2f);
-            bool hitSomething = false;
+            hitSomething = false;
 
             //Launch a raycast from the center of the camera and only hit things with the Default layer mask
             if (Physics.Raycast(ray, out hit, distance, LayerMask.GetMask("Default")))

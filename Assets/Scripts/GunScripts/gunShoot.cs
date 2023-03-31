@@ -4,7 +4,7 @@ using UnityEngine;
 using TMPro;
 using player;
 
-public class gunShoot : MonoBehaviour, IPick
+public class gunShoot : MonoBehaviour, IPick, IFunction
 {
     [Header("Gun Transforms")]
     [SerializeField] private Transform holdArea;
@@ -22,6 +22,9 @@ public class gunShoot : MonoBehaviour, IPick
     [Header("Ammo Count")]
     [SerializeField] private TextMeshProUGUI ammoCount;
 
+    [Header("Can Interact")]
+    [SerializeField] private interactController canInteract;
+
     //Gun Down Time
     private float lastShootTime;
 
@@ -36,30 +39,49 @@ public class gunShoot : MonoBehaviour, IPick
     private Vector3 gunBobPos = Vector3.zero;
 
     //Ammo
-    private int gunMag;
-    private int totalAmmo;
+    public int gunMag { get; private set; }
+    public int totalAmmo { get; private set; }
 
     //Reload
     private bool reloading;
+    public static bool showAmmo;
+    public static string ammo;
 
     //IPick settings
     public string getDesc() => "Pick up " + settings.gunName;
     public Transform getTransformArea() => holdArea;
 
-    void Awake() { gunMag = settings.ammoMag; totalAmmo = settings.ammoCount; }
+    //IFunction settings
+    public void doThis() => shootType();
+    public bool canFunc()
+    {
+        if (!anim.GetCurrentAnimatorStateInfo(0).IsName("Idle") || reloading) return false;
+        else return true;
+    }
+
+    //****************************************************************************************************************************************************************************************************************************
+
+    void Awake() {
+        gunMag = settings.ammoMag;
+        totalAmmo = settings.ammoCount;
+    }
+
+    //****************************************************************************************************************************************************************************************************************************
 
     void Update()
     {
+        ammoCount.SetText(ammo);
+        ammoCount.enabled = showAmmo;
         //Check if the gun is actually held first
         if (transform.parent == holdArea)
         {
             gunMoveController();
-            shootType();
+            recoilController();
 
-        } else {
-            ammoCount.text = "";
-        }
+        } 
     }
+
+    //****************************************************************************************************************************************************************************************************************************
 
     //Control how the gun moves
     void gunMoveController()
@@ -67,6 +89,8 @@ public class gunShoot : MonoBehaviour, IPick
         gunSway();
         gunBob();
     }
+
+    //****************************************************************************************************************************************************************************************************************************
 
     void gunSway()
     {
@@ -81,6 +105,8 @@ public class gunShoot : MonoBehaviour, IPick
         //change the actual rotation of the gun itself
         transform.localRotation = Quaternion.Slerp(transform.localRotation, xSway * ySway, Time.deltaTime * settings.swaySmooth);
     }
+
+    //****************************************************************************************************************************************************************************************************************************
 
     void gunBob()
     {
@@ -99,6 +125,8 @@ public class gunShoot : MonoBehaviour, IPick
     
     }
 
+    //****************************************************************************************************************************************************************************************************************************
+
     void resetBob()
     {
         Vector3 startPos = new Vector3(0, 0, transform.localPosition.z);
@@ -109,6 +137,8 @@ public class gunShoot : MonoBehaviour, IPick
             gunBobPos = Vector3.zero;
         }
     }
+
+    //****************************************************************************************************************************************************************************************************************************
 
     float frequencyMultiplier()
     {
@@ -126,13 +156,14 @@ public class gunShoot : MonoBehaviour, IPick
         }
     }
 
+    //****************************************************************************************************************************************************************************************************************************
+
     void shootType()
     {
-        recoilController();
+        Debug.Log("k bruh");
         //Check what kind of firing mode we have
         if(reloading) ammoCount.text = "Reloading";
         else ammoCount.SetText(gunMag + "/" + totalAmmo);
-        if (!anim.GetCurrentAnimatorStateInfo(0).IsName("Idle") || reloading) return;
         switch (settings.guntype)
         {
             //If its full auto, call the shoot script when we're holding the mouse down
@@ -162,10 +193,14 @@ public class gunShoot : MonoBehaviour, IPick
         if (Input.GetKeyDown(KeyCode.R) && totalAmmo != 0) reload();
     }
 
+    //****************************************************************************************************************************************************************************************************************************
+
     void reload()
     {
         StartCoroutine(waitFFS());
     }
+
+    //****************************************************************************************************************************************************************************************************************************
 
     IEnumerator waitFFS()
     {
@@ -173,10 +208,21 @@ public class gunShoot : MonoBehaviour, IPick
         yield return new WaitForSeconds(1f);
 
         int reloadAmount = settings.ammoMag - gunMag;
-        gunMag += reloadAmount;
-        totalAmmo -= reloadAmount;
+
+        if(reloadAmount > totalAmmo)
+        {
+            gunMag += totalAmmo;
+            totalAmmo = 0;
+
+        } else {
+            gunMag += reloadAmount;
+            totalAmmo -= reloadAmount;
+        }
+
         reloading = false;
     }
+
+    //****************************************************************************************************************************************************************************************************************************
 
     void shoot()
     {
@@ -204,6 +250,8 @@ public class gunShoot : MonoBehaviour, IPick
         }
     }
 
+    //****************************************************************************************************************************************************************************************************************************
+
     void shootBullet(GameObject bullet, Vector3 hitPoint)
     {
         //get the distance we want to travel by subtracting the place we hit with where our bullet will be shot
@@ -214,6 +262,8 @@ public class gunShoot : MonoBehaviour, IPick
 
         //decrease the bullets in the mag
     }
+
+    //****************************************************************************************************************************************************************************************************************************
 
     void recoilController()
     {
@@ -229,6 +279,8 @@ public class gunShoot : MonoBehaviour, IPick
         //Make our rotation always slerp to 0
         transform.localRotation = Quaternion.Slerp(transform.localRotation, Quaternion.Euler(Vector3.zero), Time.deltaTime * settings.rotRecoilReturnSpeed);
     }
+
+    //****************************************************************************************************************************************************************************************************************************
 
     void recoil()
     {

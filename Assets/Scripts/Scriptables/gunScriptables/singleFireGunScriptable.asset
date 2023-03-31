@@ -28,8 +28,8 @@ MonoBehaviour:
   recoilZ: 2
   recoilReturn: 3
   snappiness: 4
-  swayXMultiplier: 110
-  swayYMultiplier: 150
+  swayXMultiplier: 150
+  swayYMultiplier: 200
   swaySmooth: 10
   frequency: 4
   amplitude: 0.12

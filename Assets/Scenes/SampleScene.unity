@@ -903,7 +903,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh24814
+  m_Name: pb_Mesh24034
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2
@@ -1966,6 +1966,7 @@ GameObject:
   - component: {fileID: 1276348516}
   - component: {fileID: 1276348521}
   - component: {fileID: 1276348522}
+  - component: {fileID: 1276348523}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -2118,6 +2119,18 @@ MonoBehaviour:
   interactionProgress: {fileID: 685758330}
   cursor: {fileID: 1482113146}
   description: {fileID: 744199293}
+--- !u!114 &1276348523
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1276348515}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac591906134c7450ebefdae2ed9459b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!850595691 &1338149271
 LightingSettings:
   m_ObjectHideFlags: 0
@@ -2580,6 +2593,7 @@ MonoBehaviour:
   anim: {fileID: 1979068577}
   cam: {fileID: 963194227}
   ammoCount: {fileID: 919488279}
+  canInteract: {fileID: 1276348522}
 --- !u!65 &1515270294
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2621,7 +2635,7 @@ GameObject:
   - component: {fileID: 1601579260}
   - component: {fileID: 1601579259}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: ammoHolder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2724,6 +2738,7 @@ MonoBehaviour:
   anim: {fileID: 1852678464}
   cam: {fileID: 963194227}
   ammoCount: {fileID: 919488279}
+  canInteract: {fileID: 1276348522}
 --- !u!65 &1696210896
 BoxCollider:
   m_ObjectHideFlags: 0
