@@ -25,7 +25,8 @@ namespace player
         private int holdingNum = 0;
         private int lastHoldingNum;
         private Transform originalTrans;
-        private bool hitSomething;
+        public bool hitSomething { get; private set; }
+        private Animator objAnim;
 
         [Header("Interact System")]
         private float lastInteractTime = 0;
@@ -40,11 +41,10 @@ namespace player
             //Launch a raycast from the center of the camera and only hit things with the Default layer mask
             if (Physics.Raycast(ray, out hit, distance, LayerMask.GetMask("Default")))
             {
-                hitSomething = true;
-
                 //if we hit an object that's interactable
                 if (hit.collider.TryGetComponent<Interactable>(out Interactable interacting))
                 {
+                    hitSomething = true;
                     isLookingAtCursor.SetActive(true);
                     //Get what we're doing with the interactable
                     description.text = interacting.getDescription();
@@ -55,6 +55,7 @@ namespace player
                     //If we look at something that can be picked up
                 } else if (hit.collider.TryGetComponent<IPick>(out IPick selectedObj)) {
 
+                    hitSomething = true;
                     //Set the cursor active 
                     isLookingAtCursor.SetActive(true);
                     pickUpSystem(selectedObj);
@@ -62,6 +63,7 @@ namespace player
                     //If we look at something where we can place our object
                 } else if (hit.collider.TryGetComponent<IPlace>(out IPlace placeObj)) {
 
+                    hitSomething = true;
                     //Set the cursor active
                     isLookingAtCursor.SetActive(true);
                     //Check we aren't holding are
@@ -81,6 +83,7 @@ namespace player
 
             //Set our pick up obj to whatever we're holding
             pickUpObj = objInv[holdingNum] != null ? objInv[holdingNum] : null;
+            objAnim = pickUpObj != null ? pickUpObj.GetComponentInChildren<Animator>() : null;
 
             //Check for our inputs
             inputs();
@@ -202,7 +205,7 @@ namespace player
 
             inventorySorter();
 
-            if (objInv[holdingNum] != null) objInv[holdingNum].GetComponentInChildren<Animator>().SetTrigger("startAnim");
+            if(objAnim != null) objAnim.SetTrigger("pickUp");
         }
 
         //**************************************************************************************************************
@@ -260,39 +263,46 @@ namespace player
             //idk this is a quality of life thing for me I just like it
             pickUp.transform.SetSiblingIndex(holdingNum);
 
-            //pickUp.transform.GetChild(0).GetComponent<Animator>().SetTrigger("startAnim");
-
             //Make sure that the rotations, positions, and scale match to what we want when picking it up
-            setArea(pickUp);
+            StartCoroutine(moveObj(pickUp));
+            pickUp.transform.localScale = Vector3.one;
 
             //Set the layer to holding for the camera
             pickUp.layer = LayerMask.NameToLayer("Holding");
+        }
+
+        IEnumerator moveObj(GameObject pickUp)
+        {
+            while(pickUp.transform.localPosition != Vector3.zero)
+            {
+                pickUp.transform.localPosition = Vector3.MoveTowards(pickUp.transform.localPosition, Vector3.zero, Time.deltaTime * 2f);
+                pickUp.transform.localRotation = Quaternion.Slerp(pickUp.transform.localRotation, Quaternion.Euler(Vector3.zero), Time.deltaTime * 2f);
+                yield return null;
+            }
         }
 
         //**************************************************************************************************************
 
         void drop(Transform placeArea)
         {
+            objAnim.SetTrigger("resetAnim");
+            objAnim.ResetTrigger("pickUp");
+
             //Set the parent to where we want to place it
-            objInv[holdingNum].transform.SetParent(placeArea);
+            pickUpObj.transform.SetParent(placeArea);
 
             //Make sure that the rotations, positions, and scale match to what we want when placing it
-            setArea(objInv[holdingNum]);
+            pickUpObj.transform.localPosition = Vector3.zero;
+            pickUpObj.transform.localRotation = Quaternion.Euler(Vector3.zero);
+            pickUpObj.transform.localScale = Vector3.one;
 
             //Make the layer the default, enviroment layer
-            objInv[holdingNum].layer = LayerMask.NameToLayer("Default");
+            pickUpObj.layer = LayerMask.NameToLayer("Default");
 
-            objInv[holdingNum].transform.SetParent(null);
+            pickUpObj.transform.SetParent(null);
 
             //remove the object from our inventory
             objInv[holdingNum] = null;
-        }
-
-        void setArea(GameObject Object)
-        {
-            Object.transform.localPosition = Vector3.zero;
-            Object.transform.localRotation = Quaternion.Euler(Vector3.zero);
-            Object.transform.localScale = Vector3.one;
         }
     }
 }

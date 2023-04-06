@@ -11,10 +11,7 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
     [SerializeField] private Transform shootArea;
 
     [Header("Gun Settings")]
-    [SerializeField] private singleFireGunScriptable settings;
-
-    [Header("Gun Animations")]
-    [SerializeField] private Animator anim;
+    [SerializeField] private gunSettingsScriptable settings;
 
     [Header("Player Cam")]
     [SerializeField] private Camera cam;
@@ -23,7 +20,10 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
     [SerializeField] private TextMeshProUGUI ammoCount;
 
     [Header("Can Interact")]
-    [SerializeField] private interactController canInteract;
+    [SerializeField] private interactController interactCont;
+
+    [Header("Animator")]
+    [SerializeField] private Animator anim;
 
     //Gun Down Time
     private float lastShootTime;
@@ -43,7 +43,7 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
     public int totalAmmo { get; private set; }
 
     //Reload
-    private bool reloading;
+    public bool reloading { get; private set; }
     public static bool showAmmo;
     public static string ammo;
 
@@ -52,11 +52,9 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
     public Transform getTransformArea() => holdArea;
 
     //IFunction settings
-    public void doThis() => shootType();
-    public bool canFunc()
+    public void doThis()
     {
-        if (!anim.GetCurrentAnimatorStateInfo(0).IsName("Idle") || reloading) return false;
-        else return true;
+        shootType();
     }
 
     //****************************************************************************************************************************************************************************************************************************
@@ -78,7 +76,8 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
             gunMoveController();
             recoilController();
 
-        } 
+        } else {
+        }
     }
 
     //****************************************************************************************************************************************************************************************************************************
@@ -87,7 +86,7 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
     void gunMoveController()
     {
         gunSway();
-        gunBob();
+        //gunBob();
     }
 
     //****************************************************************************************************************************************************************************************************************************
@@ -95,27 +94,27 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
     void gunSway()
     {
         //Get the axis of us turning the mouse and multiply it by how powerful we want the sway to be
-        float x = Input.GetAxisRaw("Mouse X") * settings.swayXMultiplier;
-        float y = Input.GetAxisRaw("Mouse Y") * settings.swayYMultiplier;
+        float x = Input.GetAxisRaw("Mouse X") * 750;
+        float y = Input.GetAxisRaw("Mouse Y") * 800;
 
         //turn the gun on the direction our mouse is going by getting the sway and rotating it around the corresponding axis
         Quaternion xSway = Quaternion.AngleAxis(-x, Vector3.up);
         Quaternion ySway = Quaternion.AngleAxis(y, Vector3.right);
 
         //change the actual rotation of the gun itself
-        transform.localRotation = Quaternion.Slerp(transform.localRotation, xSway * ySway, Time.deltaTime * settings.swaySmooth);
+        transform.localRotation = Quaternion.Slerp(transform.localRotation, xSway * ySway, Time.deltaTime * 7);
     }
 
     //****************************************************************************************************************************************************************************************************************************
 
-    void gunBob()
+    /*void gunBob()
     {
-        if (Input.GetAxisRaw("Horizontal") + Input.GetAxisRaw("Vertical") != 0)
+        if (Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0)
         {
             float swayMultiplier = frequencyMultiplier();
 
-            gunBobPos.x += Mathf.Cos(Time.time * (settings.frequency/2 * swayMultiplier)) * settings.amplitude/2;
-            gunBobPos.y += Mathf.Sin(Time.time * (settings.frequency * swayMultiplier)) * settings.amplitude/8;
+            gunBobPos.x += Mathf.Cos(Time.time * (0.4f/2 * swayMultiplier)) * 3.75f/2;
+            gunBobPos.y += Mathf.Sin(Time.time * (0.4f * swayMultiplier)) * 3.75f/7.5f;
             gunBobPos.z = transform.localPosition.z;
 
             transform.localPosition = gunBobPos;
@@ -123,7 +122,7 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
         } 
         resetBob();
     
-    }
+    }*/
 
     //****************************************************************************************************************************************************************************************************************************
 
@@ -160,26 +159,21 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
 
     void shootType()
     {
-        Debug.Log("k bruh");
         //Check what kind of firing mode we have
-        if(reloading) ammoCount.text = "Reloading";
-        else ammoCount.SetText(gunMag + "/" + totalAmmo);
         switch (settings.guntype)
         {
             //If its full auto, call the shoot script when we're holding the mouse down
-            case singleFireGunScriptable.gunType.fullAuto:
+            case gunSettingsScriptable.gunType.fullAuto:
                 if(Input.GetKey(KeyCode.Mouse0)){
-                    if (gunMag == 0 && totalAmmo != 0) reload();
-                    else if (!(gunMag == 0))shoot();
+                    shootHolder();
                 }
 
                 break;
 
             //If it's semi auto, call every time we click
-            case singleFireGunScriptable.gunType.semiAuto:
+            case gunSettingsScriptable.gunType.semiAuto:
                 if (Input.GetKeyDown(KeyCode.Mouse0)){
-                    if (gunMag == 0 && totalAmmo != 0) reload();
-                    else if (!(gunMag == 0)) shoot();
+                    shootHolder();
                 }
 
                 break;
@@ -190,7 +184,15 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
                 break;
         }
 
-        if (Input.GetKeyDown(KeyCode.R) && totalAmmo != 0) reload();
+
+
+        if (Input.GetKeyDown(KeyCode.R) && totalAmmo != 0 && gunMag != settings.ammoMag) reload();
+
+        void shootHolder()
+        {
+            if (gunMag == 0 && totalAmmo != 0) reload();
+            else if (!(gunMag == 0)) shoot();
+        }
     }
 
     //****************************************************************************************************************************************************************************************************************************
@@ -232,35 +234,14 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
             //launch a ray from the center of the screen
             Ray ray = cam.ViewportPointToRay(Vector3.one / 2f);
             //create a bullet from the bullet prefab
+            gunMag--;
             recoil();
 
-            gunMag--;
-            GameObject bullet = Instantiate(settings.bullet, shootArea.transform.position, Quaternion.identity);
-
-            //If we hit something
-            if (Physics.Raycast(ray, out hit, settings.bulletDistance)){
-                shootBullet(bullet, hit.point);
-            //If we miss and hit nothing
-            }else{
-                shootBullet(bullet, ray.GetPoint(settings.bulletDistance));
-            }
+            settings.onFire(ray, hit, shootArea);
 
             //Set the last time we shot
             lastShootTime = Time.time;
         }
-    }
-
-    //****************************************************************************************************************************************************************************************************************************
-
-    void shootBullet(GameObject bullet, Vector3 hitPoint)
-    {
-        //get the distance we want to travel by subtracting the place we hit with where our bullet will be shot
-        Vector3 travelDistance = hitPoint - shootArea.position;
-
-        //add a force to the bullet using the direction our bullet hit multiplied by the bullet speed and using the Impulse mode in order to make sure to add an instant force
-        bullet.GetComponent<Rigidbody>().AddForce(travelDistance.normalized * settings.bulletSpeed, ForceMode.Impulse);
-
-        //decrease the bullets in the mag
     }
 
     //****************************************************************************************************************************************************************************************************************************

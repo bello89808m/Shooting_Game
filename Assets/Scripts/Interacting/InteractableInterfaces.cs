@@ -35,6 +35,5 @@ public interface IPick
 
 public interface IFunction
 {
-    public bool canFunc();
     public void doThis();
 }
