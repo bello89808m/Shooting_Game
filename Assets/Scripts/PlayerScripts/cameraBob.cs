@@ -18,36 +18,36 @@ namespace player
 
 
         // Update is called once per frame
-        private void Update() => CheckMotion();
+        private void Update() => CheckMotionFunc();
 
-        private void PlayMotion(Vector3 motion) => camera.localPosition += motion;
+        private void PlayMotionFunc(Vector3 motion) => camera.localPosition += motion;
 
-        private void CheckMotion()
+        private void CheckMotionFunc()
         {
-            ResetPosition();
-            setBobSpeed();
+            ResetPositionFunc();
+            setBobSpeedFunc();
         }
 
-        private void setBobSpeed()
+        private void setBobSpeedFunc()
         {
             switch (playerSpeed.state)
             {
                 case playerMovement.movementState.walking:
-                    PlayMotion(FootSteps(6f, 0.002f));
+                    PlayMotionFunc(FootStepsFunc(6f, 0.002f));
                     break;
                 case playerMovement.movementState.sprinting:
-                    PlayMotion(FootSteps(8f, 0.0025f));
+                    PlayMotionFunc(FootStepsFunc(8f, 0.0025f));
                     break;
                 case playerMovement.movementState.crouching:
-                    PlayMotion(FootSteps(4f, 0.0015f));
+                    PlayMotionFunc(FootStepsFunc(4f, 0.0015f));
                     break;
                 default:
-                    PlayMotion(FootSteps(0f, 0f));
+                    PlayMotionFunc(FootStepsFunc(0f, 0f));
                     break;
             }
         }
 
-        private Vector3 FootSteps(float frequency, float amplitude)
+        private Vector3 FootStepsFunc(float frequency, float amplitude)
         {
             //Create a new vector thats 0,0,0
             Vector3 pos = Vector3.zero;
@@ -56,7 +56,7 @@ namespace player
             return pos;
         }
 
-        private void ResetPosition()
+        private void ResetPositionFunc()
         {
             if (camera.localPosition == startPos) return;
 

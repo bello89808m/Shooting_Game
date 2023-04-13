@@ -20,19 +20,8 @@ namespace player
             {
                 if (holdObj.pickUpObj.TryGetComponent<IFunction>(out IFunction functionThing))
                 {
-                    functionThing.doThis();
+                    functionThing.doThisFunc();
                 }
-
-                if (holdObj.pickUpObj.TryGetComponent<gunShoot>(out gunShoot gun))
-                {
-                    gunShoot.showAmmo = true;
-                    gunShoot.ammo = gun.reloading ? "Reloading" : gun.gunMag.ToString() + "/" + gun.totalAmmo.ToString();
-                    
-                } else {
-                    gunShoot.showAmmo = false;
-                }
-            } else {
-                gunShoot.showAmmo = false;
             }
         }
     }

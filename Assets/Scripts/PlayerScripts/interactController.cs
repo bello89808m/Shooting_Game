@@ -20,16 +20,16 @@ namespace player
         [SerializeField] private TextMeshProUGUI description;
 
         [Header("Pick Up System")]
-        private GameObject[] objInv = new GameObject[3];
-        public GameObject pickUpObj { get; private set; }
+        [SerializeField] private GameObject[] objInv = new GameObject[3];
         private int holdingNum = 0;
         private int lastHoldingNum;
         private Transform originalTrans;
+
+        public GameObject pickUpObj { get; private set; }
         public bool hitSomething { get; private set; }
-        private Animator objAnim;
+        public Animator objAnim { get; private set; }
 
         [Header("Interact System")]
-        private float lastInteractTime = 0;
         private float holdTime = 0;
 
         void Update()
@@ -39,7 +39,7 @@ namespace player
             hitSomething = false;
 
             //Launch a raycast from the center of the camera and only hit things with the Default layer mask
-            if (Physics.Raycast(ray, out hit, distance, LayerMask.GetMask("Default")))
+            if (Physics.Raycast(ray, out hit, distance, ~LayerMask.GetMask("Holding")))
             {
                 //if we hit an object that's interactable
                 if (hit.collider.TryGetComponent<Interactable>(out Interactable interacting))
@@ -47,10 +47,10 @@ namespace player
                     hitSomething = true;
                     isLookingAtCursor.SetActive(true);
                     //Get what we're doing with the interactable
-                    description.text = interacting.getDescription();
+                    description.text = interacting.getDescriptionFunc();
 
                     //If we actually interact with it/press E
-                    HandleInteraction(interacting);
+                    HandleInteractionFunc(interacting);
 
                     //If we look at something that can be picked up
                 } else if (hit.collider.TryGetComponent<IPick>(out IPick selectedObj)) {
@@ -58,7 +58,7 @@ namespace player
                     hitSomething = true;
                     //Set the cursor active 
                     isLookingAtCursor.SetActive(true);
-                    pickUpSystem(selectedObj);
+                    pickUpSystemFunc(selectedObj);
 
                     //If we look at something where we can place our object
                 } else if (hit.collider.TryGetComponent<IPlace>(out IPlace placeObj)) {
@@ -67,15 +67,10 @@ namespace player
                     //Set the cursor active
                     isLookingAtCursor.SetActive(true);
                     //Check we aren't holding are
-                    if (pickUpObj != null)
-                    {
-                        //Get what we're doing with the interactable
-                        description.text = placeObj.getDescription(pickUpObj);
-
-                        //if we click it run the place script
-                        if (Input.GetKeyDown(KeyCode.Mouse0)) drop(placeObj.getPlaceArea());
-                    }
+                    dropSystemFunc(placeObj);
                 }
+
+
             }
 
             //if we are not hitting something, set these things to null except not really null but just pretend ok
@@ -84,26 +79,28 @@ namespace player
             //Set our pick up obj to whatever we're holding
             pickUpObj = objInv[holdingNum] != null ? objInv[holdingNum] : null;
             objAnim = pickUpObj != null ? pickUpObj.GetComponentInChildren<Animator>() : null;
-
+             
             //Check for our inputs
-            inputs();
+            inputsFunc();
+
+            handleAmmoFunc();
         }
 
         //**************************************************************************************************************
 
-        public void HandleInteraction(Interactable interactable)
+        public void HandleInteractionFunc(Interactable interactable)
         {
-            switch (interactable.getType())
+            switch (interactable.getTypeFunc())
             {
                 //If we want the type to be click
                 case Interactable.InteractionType.Click:
 
-                    if (!interactable.getDownTime())
+                    if (!interactable.getDownTimeFunc())
                     {
                         if (Input.GetKeyDown(KeyCode.E))
                         {
                             //run the interact function
-                            interactable.interact();
+                            interactable.interactFunc();
                         }
                     } else {
                         isLookingAtCursor.SetActive(false);
@@ -116,7 +113,7 @@ namespace player
                 case Interactable.InteractionType.Hold:
 
                     //Downtime. Will add to the other version as well, but may need change the text part.
-                    if(!interactable.getDownTime())
+                    if(!interactable.getDownTimeFunc())
                     {
                         if (Input.GetKey(KeyCode.E))
                         {
@@ -129,9 +126,8 @@ namespace player
                             if (holdTime > 1.0f)
                             {
                                 //run the interact script then set the time to 0
-                                interactable.interact();
+                                interactable.interactFunc();
                                 holdTime = 0;
-                                lastInteractTime = Time.time;
                             }
 
                         } else {
@@ -155,7 +151,7 @@ namespace player
 
         //**************************************************************************************************************
 
-        void inputs()
+        void inputsFunc()
         {
             //Scrolling up
             if (Input.GetAxis("Mouse ScrollWheel") < 0)
@@ -182,35 +178,29 @@ namespace player
                 lastHoldingNum = holdingNum;
                 holdingNum = 0;
 
-            }
-            else if (Input.GetKeyDown(KeyCode.Alpha2))
-            {
+            } else if (Input.GetKeyDown(KeyCode.Alpha2)) {
                 lastHoldingNum = holdingNum;
                 holdingNum = 1;
 
-            }
-            else if (Input.GetKeyDown(KeyCode.Alpha3))
-            {
+            } else if (Input.GetKeyDown(KeyCode.Alpha3)) {
                 lastHoldingNum = holdingNum;
                 holdingNum = 2;
 
                 //Make it so we can press Q and switch to the thing we were holding last
-            }
-            else if (Input.GetKeyDown(KeyCode.Q))
-            {
+            } else if (Input.GetKeyDown(KeyCode.Q)) {
                 int holdingNumHolder = holdingNum;
                 holdingNum = lastHoldingNum;
                 lastHoldingNum = holdingNumHolder;
             }
 
-            inventorySorter();
+            inventorySorterFunc();
 
             if(objAnim != null) objAnim.SetTrigger("pickUp");
         }
 
         //**************************************************************************************************************
 
-        void inventorySorter()
+        void inventorySorterFunc()
         {
 
             foreach (GameObject holdObjCheck in objInv)
@@ -219,9 +209,7 @@ namespace player
                 {
                     holdObjCheck.SetActive(true);
 
-                }
-                else if (holdObjCheck != objInv[holdingNum] && holdObjCheck != null)
-                {
+                } else if (holdObjCheck != objInv[holdingNum] && holdObjCheck != null) {
                     holdObjCheck.SetActive(false);
                 }
             }
@@ -229,10 +217,11 @@ namespace player
 
         //**************************************************************************************************************
 
-        void pickUpSystem(IPick selectedObj)
+        void pickUpSystemFunc(IPick selectedObj)
         {
+            bool altPickUp = true;
             //Get what we're doing with the interactable
-            description.text = selectedObj.getDesc();
+            description.text = selectedObj.getDescFunc();
 
             //If we decide to interact with it
             if (Input.GetKeyDown(KeyCode.Mouse0))
@@ -244,19 +233,33 @@ namespace player
                     objInv[holdingNum] = hit.transform.gameObject;
 
                 } else if (pickUpObj != null) {
-                    drop(hit.transform);
+
+                    for (int invNum = 0; invNum <= 2; invNum++)
+                    {
+                        if (objInv[invNum] == null)
+                        {
+                            holdingNum = invNum;
+                            altPickUp = false;
+                            break;
+                        }
+                    }
+
+                    if (altPickUp){
+                        if (!objAnim.GetCurrentAnimatorStateInfo(0).IsName("equipped")) return;
+                        dropFunc(hit.transform);
+                    }
 
                     objInv[holdingNum] = hit.transform.gameObject;
                 }
 
                 //Run the pick up function to set the object into our transform
-                pickUp(hit.transform.gameObject, selectedObj.getTransformArea());
+                pickUpFunc(hit.transform.gameObject, selectedObj.getTransformAreaFunc());
             }
         }
 
         //**************************************************************************************************************
 
-        void pickUp(GameObject pickUp, Transform holdArea)
+        void pickUpFunc(GameObject pickUp, Transform holdArea)
         {
             //Set out object to be parented to where we want it to go after holding it
             pickUp.transform.SetParent(holdArea);
@@ -264,26 +267,29 @@ namespace player
             pickUp.transform.SetSiblingIndex(holdingNum);
 
             //Make sure that the rotations, positions, and scale match to what we want when picking it up
-            StartCoroutine(moveObj(pickUp));
-            pickUp.transform.localScale = Vector3.one;
+            setPosFunc(pickUp);
 
             //Set the layer to holding for the camera
             pickUp.layer = LayerMask.NameToLayer("Holding");
         }
 
-        IEnumerator moveObj(GameObject pickUp)
+        //**************************************************************************************************************
+
+        void dropSystemFunc(IPlace placeObj)
         {
-            while(pickUp.transform.localPosition != Vector3.zero)
+            if (pickUpObj != null)
             {
-                pickUp.transform.localPosition = Vector3.MoveTowards(pickUp.transform.localPosition, Vector3.zero, Time.deltaTime * 2f);
-                pickUp.transform.localRotation = Quaternion.Slerp(pickUp.transform.localRotation, Quaternion.Euler(Vector3.zero), Time.deltaTime * 2f);
-                yield return null;
+                //Get what we're doing with the interactable
+                description.text = placeObj.getDescriptionFunc(pickUpObj);
+
+                //if we click it run the place script
+                if (Input.GetKeyDown(KeyCode.Mouse0)) dropFunc(placeObj.getPlaceAreaFunc());
             }
         }
 
         //**************************************************************************************************************
 
-        void drop(Transform placeArea)
+        void dropFunc(Transform placeArea)
         {
             objAnim.SetTrigger("resetAnim");
             objAnim.ResetTrigger("pickUp");
@@ -292,9 +298,7 @@ namespace player
             pickUpObj.transform.SetParent(placeArea);
 
             //Make sure that the rotations, positions, and scale match to what we want when placing it
-            pickUpObj.transform.localPosition = Vector3.zero;
-            pickUpObj.transform.localRotation = Quaternion.Euler(Vector3.zero);
-            pickUpObj.transform.localScale = Vector3.one;
+            setPosFunc(pickUpObj);
 
             //Make the layer the default, enviroment layer
             pickUpObj.layer = LayerMask.NameToLayer("Default");
@@ -303,6 +307,31 @@ namespace player
 
             //remove the object from our inventory
             objInv[holdingNum] = null;
+        }
+
+        void setPosFunc(GameObject obj)
+        {
+            obj.transform.localPosition = Vector3.zero;
+            obj.transform.localRotation = Quaternion.Euler(Vector3.zero);
+            obj.transform.localScale = Vector3.one;
+        }
+
+        //**************************************************************************************************************
+
+        void handleAmmoFunc()
+        {
+            if (pickUpObj != null && pickUpObj.TryGetComponent<gunShoot>(out gunShoot gun))
+            {
+                if (gun.anim == null) return;
+
+                gunShoot.showAmmo = true;
+                gunShoot.ammo = gun.anim.GetCurrentAnimatorStateInfo(0).IsName("reload")
+                                || gun.anim.GetAnimatorTransitionInfo(0).IsName("equipped -> reload")
+                                ? "Reloading" : gun.gunMag.ToString() + "/" + gun.totalAmmo.ToString();
+
+            } else {
+                gunShoot.showAmmo = false;
+            }
         }
     }
 }

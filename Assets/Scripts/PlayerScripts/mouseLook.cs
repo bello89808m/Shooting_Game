@@ -21,12 +21,12 @@ namespace player
 
         void Update()
         {
-            MouseLook();
+            MouseLookFunc();
         }
 
         //**************************************************************************************************************
 
-        void MouseLook()
+        void MouseLookFunc()
         {
             //looking left and right
             float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;

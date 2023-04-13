@@ -37,11 +37,6 @@ namespace player
         [SerializeField] private KeyCode sprintKey = KeyCode.LeftShift;
         [SerializeField] private KeyCode crouchKey = KeyCode.LeftControl;
 
-        void Update()
-        {
-            playerMove();
-        }
-
         public movementState state;
         //enum for how you're moving
         public enum movementState
@@ -54,9 +49,16 @@ namespace player
 
         //**************************************************************************************************************
 
-        void playerMove()
+        void Update()
         {
-            groundedCheck();
+            playerMoveFunc();
+        }
+
+        //**************************************************************************************************************
+
+        void playerMoveFunc()
+        {
+            groundedCheckFunc();
 
             //Moving the player
             //Get if we're pressing A or D 
@@ -79,18 +81,18 @@ namespace player
 
             if (isCrouching)
             {
-                crouching();
+                crouchingFunc();
             } else {
-                standing();
+                standingFunc();
             }
 
-            cameraFOV();
+            cameraFOVfunc();
         }
 
         //**************************************************************************************************************
 
         //Who thought crouching would be so hard? Like seriously this wasted genuine days because I just couldn't think of a good solution and needed a tutorial to see how to change this. God damn you 2022 December me
-        void crouching()
+        void crouchingFunc()
         {
             //Move Towards this height
             controller.height = Mathf.MoveTowards(currentHeight, 0.5f, Time.deltaTime * crouchingSpeed);
@@ -104,7 +106,7 @@ namespace player
         //**************************************************************************************************************
 
         //This probably needs to be fixed but I'm just too lazy to
-        void standing()
+        void standingFunc()
         {
             //Check nothing is above us
             RaycastHit hit;
@@ -138,7 +140,7 @@ namespace player
 
         //**************************************************************************************************************
 
-        void groundedCheck()
+        void groundedCheckFunc()
         {
             //Ground check
             //Create a sphere at the bottom of the player and see if theres something hitting it
@@ -155,7 +157,7 @@ namespace player
 
         //**************************************************************************************************************
 
-        void cameraFOV()
+        void cameraFOVfunc()
         {
             //Movement State
             float targetFOV = walkFOV;

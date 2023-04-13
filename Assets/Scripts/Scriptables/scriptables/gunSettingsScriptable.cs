@@ -32,6 +32,13 @@ public abstract class gunSettingsScriptable : ScriptableObject
     public int ammoMag;
     public int ammoCount;
 
+    [Header("Gun Bob")]
+    public float frequency;
+    public float amplitude;
+
+    [Header("Can Aim")]
+    public bool canAim;
+
     [Header("Gun Type")]
     public gunType guntype;
 
@@ -41,7 +48,7 @@ public abstract class gunSettingsScriptable : ScriptableObject
         semiAuto,
     }
 
-    public abstract void onFire(Ray ray, RaycastHit hit, Transform shootArea);
+    public abstract void onFireFunc(Ray ray, RaycastHit hit, Transform shootArea);
 }
 
 

@@ -22,7 +22,7 @@ public class interactDoor : MonoBehaviour {
 
     //**************************************************************************************************************
 
-    public void open()
+    public void openFunc()
     {
         //When the door is not open, stop the animation if another on is running then start the open coroutine
         if (!isOpen){
@@ -30,13 +30,13 @@ public class interactDoor : MonoBehaviour {
                 StopCoroutine(animationCoroutine);
             }
 
-            animationCoroutine = StartCoroutine(doOpen());
+            animationCoroutine = StartCoroutine(IdoOpen());
         }
     }
 
     //**************************************************************************************************************
 
-    private IEnumerator doOpen()
+    private IEnumerator IdoOpen()
     {
  
         //self explanatory
@@ -86,7 +86,7 @@ public class interactDoor : MonoBehaviour {
     //**************************************************************************************************************
 
     //same thing as teh open functions
-    public void close()
+    public void closeFunc()
     {
         if (isOpen)
         {
@@ -95,13 +95,13 @@ public class interactDoor : MonoBehaviour {
                 StopCoroutine(animationCoroutine);
             }
 
-            animationCoroutine = StartCoroutine(doClose());
+            animationCoroutine = StartCoroutine(IdoClose());
         }
     }
 
     //**************************************************************************************************************
 
-    public IEnumerator doClose()
+    public IEnumerator IdoClose()
     {
         //same thing as the open function, but we want to starting position to be where we're at and the end position to be where we started
         Vector3 startPosition = transform.localPosition;

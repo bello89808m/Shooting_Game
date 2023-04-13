@@ -9,12 +9,9 @@ public class DoorInteractController : MonoBehaviour, Interactable
     [SerializeField] private Transform playerLocation;
 
 
-    public string getDescription()
+    public string getDescriptionFunc()
     {
-        if(Door.isMoving){
-            return "";
-
-        }else if (Door.isOpen){
+        if (Door.isOpen){
             return "[E] Close Door";
             
         }else{
@@ -22,24 +19,24 @@ public class DoorInteractController : MonoBehaviour, Interactable
         }
     }
 
-    public bool getDownTime()
+    public bool getDownTimeFunc()
     {
         if (Door.isMoving) return true;
         else return false;
     }
 
-    public void interact()
+    public void interactFunc()
     {
         if (Door.isOpen && !Door.isMoving)
         {
-            Door.close();
+            Door.closeFunc();
 
         }else if(!Door.isOpen && !Door.isMoving){
-            Door.open();
+            Door.openFunc();
         }
     }
 
-    Interactable.InteractionType Interactable.getType()
+    Interactable.InteractionType Interactable.getTypeFunc()
     {
         return Interactable.InteractionType.Click;
     }

@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using player;
+using System;
 
 public class gunShoot : MonoBehaviour, IPick, IFunction
 {
     [Header("Gun Transforms")]
     [SerializeField] private Transform holdArea;
+    [SerializeField] private Transform aimArea;
     [SerializeField] private Transform shootArea;
 
     [Header("Gun Settings")]
@@ -15,21 +17,16 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
 
     [Header("Player Cam")]
     [SerializeField] private Camera cam;
+    private RaycastHit hit;
 
     [Header("Ammo Count")]
     [SerializeField] private TextMeshProUGUI ammoCount;
 
-    [Header("Can Interact")]
-    [SerializeField] private interactController interactCont;
-
-    [Header("Animator")]
-    [SerializeField] private Animator anim;
+    //interact controller
+    private interactController interactCont;
 
     //Gun Down Time
     private float lastShootTime;
-
-    //Raycast
-    private RaycastHit hit;
 
     //Cam Recoil
     private Vector3 camTargetRot;
@@ -42,24 +39,32 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
     public int gunMag { get; private set; }
     public int totalAmmo { get; private set; }
 
+    //Animator
+    public Animator anim { get; private set; }
+
     //Reload
-    public bool reloading { get; private set; }
     public static bool showAmmo;
     public static string ammo;
 
+    //Aiming
+    private bool isAiming;
+
     //IPick settings
-    public string getDesc() => "Pick up " + settings.gunName;
-    public Transform getTransformArea() => holdArea;
+    public string getDescFunc() => "Pick up " + settings.gunName;
+    public Transform getTransformAreaFunc() => holdArea;
 
     //IFunction settings
-    public void doThis()
+    public void doThisFunc()
     {
-        shootType();
+        if (anim == null) return; 
+        if(anim.GetCurrentAnimatorStateInfo(0).IsName("equipped") && !anim.IsInTransition(0)) shootContFunc();
     }
 
     //****************************************************************************************************************************************************************************************************************************
 
     void Awake() {
+        interactCont = FindObjectOfType<interactController>();
+
         gunMag = settings.ammoMag;
         totalAmmo = settings.ammoCount;
     }
@@ -68,30 +73,33 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
 
     void Update()
     {
+        anim = interactCont.objAnim;
+
         ammoCount.SetText(ammo);
         ammoCount.enabled = showAmmo;
         //Check if the gun is actually held first
-        if (transform.parent == holdArea)
-        {
-            gunMoveController();
-            recoilController();
 
-        } else {
+        if (transform.parent == holdArea || transform.parent == aimArea)
+        {
+            gunMoveControllerFunc();
+            recoilControllerFunc();
+
         }
     }
 
     //****************************************************************************************************************************************************************************************************************************
 
     //Control how the gun moves
-    void gunMoveController()
+    void gunMoveControllerFunc()
     {
-        gunSway();
-        //gunBob();
+        if (isAiming) return;
+        gunSwayFunc();
+        gunBobFunc();
     }
 
     //****************************************************************************************************************************************************************************************************************************
 
-    void gunSway()
+    void gunSwayFunc()
     {
         //Get the axis of us turning the mouse and multiply it by how powerful we want the sway to be
         float x = Input.GetAxisRaw("Mouse X") * 750;
@@ -107,26 +115,26 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
 
     //****************************************************************************************************************************************************************************************************************************
 
-    /*void gunBob()
+    void gunBobFunc()
     {
         if (Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0)
         {
-            float swayMultiplier = frequencyMultiplier();
+            float swayMultiplier = frequencyMultiplierFunc();
 
-            gunBobPos.x += Mathf.Cos(Time.time * (0.4f/2 * swayMultiplier)) * 3.75f/2;
-            gunBobPos.y += Mathf.Sin(Time.time * (0.4f * swayMultiplier)) * 3.75f/7.5f;
+            gunBobPos.x += Mathf.Cos(Time.time * (settings.frequency/2 * swayMultiplier)) * settings.amplitude/2;
+            gunBobPos.y += Mathf.Sin(Time.time * (settings.frequency * swayMultiplier)) * settings.amplitude/6.5f;
             gunBobPos.z = transform.localPosition.z;
 
             transform.localPosition = gunBobPos;
 
         } 
-        resetBob();
+        resetBobFunc();
     
-    }*/
+    }
 
     //****************************************************************************************************************************************************************************************************************************
 
-    void resetBob()
+    void resetBobFunc()
     {
         Vector3 startPos = new Vector3(0, 0, transform.localPosition.z);
 
@@ -139,7 +147,7 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
 
     //****************************************************************************************************************************************************************************************************************************
 
-    float frequencyMultiplier()
+    float frequencyMultiplierFunc()
     {
         //Control the frequency of the gunbob aka how fast it should bob depending on the players movestate
         var moveState = FindObjectOfType<playerMovement>();
@@ -157,7 +165,7 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
 
     //****************************************************************************************************************************************************************************************************************************
 
-    void shootType()
+    void shootContFunc()
     {
         //Check what kind of firing mode we have
         switch (settings.guntype)
@@ -186,28 +194,49 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
 
 
 
-        if (Input.GetKeyDown(KeyCode.R) && totalAmmo != 0 && gunMag != settings.ammoMag) reload();
+        if (Input.GetKeyDown(KeyCode.R) && totalAmmo != 0 && gunMag != settings.ammoMag) StartCoroutine(IwaitFFS());
+
+        if (Input.GetKey(KeyCode.Mouse1) && settings.canAim) aimingFunc();
+        else if (isAiming && !Input.GetKey(KeyCode.Mouse1)) stopAimingFunc();
 
         void shootHolder()
         {
-            if (gunMag == 0 && totalAmmo != 0) reload();
-            else if (!(gunMag == 0)) shoot();
+            if (gunMag == 0 && totalAmmo != 0) StartCoroutine(IwaitFFS());
+            else if (!(gunMag == 0)) shootFunc();
         }
     }
 
     //****************************************************************************************************************************************************************************************************************************
 
-    void reload()
+    void aimingFunc()
     {
-        StartCoroutine(waitFFS());
+        isAiming = true;
+
+        transform.SetParent(aimArea);
+        transform.localRotation = Quaternion.Euler(Vector3.zero);
+        transform.localPosition = Vector3.MoveTowards(transform.localPosition, Vector3.zero, Time.deltaTime * 10f);
+    }
+
+    void stopAimingFunc()
+    {
+        transform.SetParent(holdArea);
+        transform.localRotation = Quaternion.Euler(Vector3.zero);
+        transform.localPosition = Vector3.MoveTowards(transform.localPosition, Vector3.zero, Time.deltaTime * 10f);
+
+        if(transform.localPosition == Vector3.zero) isAiming = false;
     }
 
     //****************************************************************************************************************************************************************************************************************************
 
-    IEnumerator waitFFS()
+    IEnumerator IwaitFFS()
     {
-        reloading = true;
-        yield return new WaitForSeconds(1f);
+        anim.SetTrigger("reload");
+
+        AnimationClip[] clips = anim.runtimeAnimatorController.animationClips;
+
+        anim.SetTrigger("reload");
+
+        yield return new WaitForSeconds(clips[1].length);
 
         int reloadAmount = settings.ammoMag - gunMag;
 
@@ -220,24 +249,22 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
             gunMag += reloadAmount;
             totalAmmo -= reloadAmount;
         }
-
-        reloading = false;
     }
 
     //****************************************************************************************************************************************************************************************************************************
 
-    void shoot()
+    void shootFunc()
     {
         //Check if the last time we shot along with the delay is less than the current time in order to not fire all our bullets at once
-        if (lastShootTime + settings.shootDelay < Time.time)
+        if (lastShootTime + settings.shootDelay < Time.time && !interactCont.hitSomething)
         {
             //launch a ray from the center of the screen
             Ray ray = cam.ViewportPointToRay(Vector3.one / 2f);
             //create a bullet from the bullet prefab
             gunMag--;
-            recoil();
+            recoilFunc();
 
-            settings.onFire(ray, hit, shootArea);
+            settings.onFireFunc(ray, hit, shootArea);
 
             //Set the last time we shot
             lastShootTime = Time.time;
@@ -246,7 +273,7 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
 
     //****************************************************************************************************************************************************************************************************************************
 
-    void recoilController()
+    void recoilControllerFunc()
     {
         //Lerp from where our camera is rotoated to zero constantly
         camTargetRot = Vector3.Lerp(camTargetRot, Vector3.zero, Time.deltaTime * settings.recoilReturn);
@@ -263,10 +290,10 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
 
     //****************************************************************************************************************************************************************************************************************************
 
-    void recoil()
+    void recoilFunc()
     {
         //Make the cam target rot recoil up a certain amount and add some random recoil in the ranges of the -Y and the poitive Y, same for the Z axis
-        camTargetRot += new Vector3(-settings.recoilX, Random.Range(-settings.recoilY, settings.recoilY), Random.Range(-settings.recoilZ, settings.recoilZ));
+        camTargetRot += new Vector3(-settings.recoilX, UnityEngine.Random.Range(-settings.recoilY, settings.recoilY), UnityEngine.Random.Range(-settings.recoilZ, settings.recoilZ));
 
         //Rotate our gun as far back as we want it, depending on the settings
         transform.localRotation = Quaternion.Euler(-settings.recoilTargetRot, 0, 0);
@@ -287,45 +314,14 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
 
 
 
-
-
-
-
-
-
-
-
-
-
-/*camTargetRot = Vector3.Lerp(camTargetRot, Vector3.zero, Time.deltaTime * settings.recoilReturn);
-        camCurrentRot = Vector3.Slerp(camCurrentRot, camTargetRot, Time.fixedDeltaTime * settings.snappiness);
-        cam.transform.localRotation = Quaternion.Euler(camCurrentRot);/*
-
-
-// camTargetRot += new Vector3(settings.recoilX, Random.Range(-settings.recoilY, settings.recoilY), Random.Range(-settings.recoilZ, settings.recoilZ));
-
-
-//float swayX = Input.GetAxis("Mouse X") * -settings.swayMultiplier;
-        float swayY = Input.GetAxis("Mouse Y") * settings.swayMultiplier;
-
-        Quaternion rotRight = Quaternion.AngleAxis(swayX, Vector3.up);
-        Quaternion rotUp = Quaternion.AngleAxis(swayY, Vector3.right);
-
-        transform.localRotation = Quaternion.Slerp(transform.localRotation, rotRight * rotUp, Time.deltaTime * settings.swaySmooth);
-
-
-
-
-
 //You never know when you might wanna switch
 
 
-/*IEnumerator shootTrail(TrailRenderer bullet, Vector3 distance)
+/*IEnumerator IshootTrail(TrailRenderer bullet, Vector3 distance)
     {
         Vector3 startPos = bullet.transform.position;
         float travelDistance = Vector3.Distance(shootArea.position, distance);
         float remainingDistance = travelDistance;
-        Debug.Log("a");
 
         while(remainingDistance > 0)
         {

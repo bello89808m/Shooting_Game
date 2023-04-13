@@ -20,14 +20,17 @@ MonoBehaviour:
   bulletDistance: 75
   recoilTargetRot: 15
   recoilTargetPush: 0.15
-  maxPosRecoil: 1.5
-  rotRecoilReturnSpeed: 10
-  posRecoilReturnSpeed: 3
-  recoilX: 5
+  maxPosRecoil: 0.17
+  rotRecoilReturnSpeed: 1
+  posRecoilReturnSpeed: 1
+  recoilX: 2
   recoilY: 0.2
   recoilZ: 0.2
-  recoilReturn: 3
-  snappiness: 2
+  recoilReturn: 5
+  snappiness: 4
   ammoMag: 100
   ammoCount: 100000
+  frequency: 4.25
+  amplitude: 0.15
+  canAim: 1
   guntype: 0

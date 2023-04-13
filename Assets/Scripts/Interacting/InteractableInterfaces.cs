@@ -13,27 +13,27 @@ public interface Interactable
     }
 
     //fundamentals
-    public void interact();
-    public bool getDownTime();
-    public string getDescription();
-    public InteractionType getType();
+    public void interactFunc();
+    public bool getDownTimeFunc();
+    public string getDescriptionFunc();
+    public InteractionType getTypeFunc();
 }
 
 public interface IPlace
 {
-    public string getDescription(GameObject name);
+    public string getDescriptionFunc(GameObject name);
 
-    public Transform getPlaceArea();
+    public Transform getPlaceAreaFunc();
 }
 
 public interface IPick
 {
-    public string getDesc();
+    public string getDescFunc();
 
-    public Transform getTransformArea();
+    public Transform getTransformAreaFunc();
 }
 
 public interface IFunction
 {
-    public void doThis();
+    public void doThisFunc();
 }

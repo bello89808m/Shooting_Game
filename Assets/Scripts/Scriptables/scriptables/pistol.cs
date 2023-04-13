@@ -5,18 +5,16 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "gunSettings", menuName = "scriptables")]
 public class pistol : gunSettingsScriptable
 {
-    public override void onFire(Ray ray, RaycastHit hit, Transform shootArea)
+    public override void onFireFunc(Ray ray, RaycastHit hit, Transform shootArea)
     {
         GameObject bullet = Instantiate(bulletType, shootArea.transform.position, Quaternion.identity);
 
         //If we hit something
-        if (Physics.Raycast(ray, out hit, bulletDistance))
+        if (Physics.Raycast(ray, out hit, bulletDistance, ~LayerMask.GetMask("Holding")))
         {
             shootBullet(bullet, hit.point);
             //If we miss and hit nothing
-        }
-        else
-        {
+        } else {
             shootBullet(bullet, ray.GetPoint(bulletDistance));
         }
 
