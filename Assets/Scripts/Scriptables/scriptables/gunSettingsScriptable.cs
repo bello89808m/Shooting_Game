@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class gunSettingsScriptable : ScriptableObject
@@ -8,7 +6,6 @@ public abstract class gunSettingsScriptable : ScriptableObject
     public string gunName;
     public GameObject bulletType;
     public float damage;
-    public float shootDelay;
 
     [Header("Bullet Settings")]
     public float bulletSpeed;
@@ -38,6 +35,13 @@ public abstract class gunSettingsScriptable : ScriptableObject
 
     [Header("Can Aim")]
     public bool canAim;
+    public float aimMultiplier;
+
+    [Header("Dynamic Crosshair")]
+    public float sittingCross;
+    public float movingCross;
+    public float crossSpeed;
+    public float crossSizeIncrease;
 
     [Header("Gun Type")]
     public gunType guntype;

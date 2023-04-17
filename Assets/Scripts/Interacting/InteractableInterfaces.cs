@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public interface Interactable
 {
@@ -36,4 +33,5 @@ public interface IPick
 public interface IFunction
 {
     public void doThisFunc();
+    public void resetValuesFunc();
 }

@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 
@@ -18,7 +16,7 @@ namespace player
         {
             if (holdObj.pickUpObj != null)
             {
-                if (holdObj.pickUpObj.TryGetComponent<IFunction>(out IFunction functionThing))
+                if (holdObj.pickUpObj.TryGetComponent(out IFunction functionThing))
                 {
                     functionThing.doThisFunc();
                 }

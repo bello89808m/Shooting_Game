@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -18,12 +16,12 @@ namespace player
         [SerializeField] private Image interactionProgress;
         [SerializeField] private GameObject cursor;
         [SerializeField] private TextMeshProUGUI description;
+        [SerializeField] private GameObject crossHair;
 
         [Header("Pick Up System")]
         [SerializeField] private GameObject[] objInv = new GameObject[3];
         private int holdingNum = 0;
         private int lastHoldingNum;
-        private Transform originalTrans;
 
         public GameObject pickUpObj { get; private set; }
         public bool hitSomething { get; private set; }
@@ -42,7 +40,7 @@ namespace player
             if (Physics.Raycast(ray, out hit, distance, ~LayerMask.GetMask("Holding")))
             {
                 //if we hit an object that's interactable
-                if (hit.collider.TryGetComponent<Interactable>(out Interactable interacting))
+                if (hit.collider.TryGetComponent(out Interactable interacting))
                 {
                     hitSomething = true;
                     isLookingAtCursor.SetActive(true);
@@ -53,7 +51,7 @@ namespace player
                     HandleInteractionFunc(interacting);
 
                     //If we look at something that can be picked up
-                } else if (hit.collider.TryGetComponent<IPick>(out IPick selectedObj)) {
+                } else if (hit.collider.TryGetComponent(out IPick selectedObj)) {
 
                     hitSomething = true;
                     //Set the cursor active 
@@ -61,7 +59,7 @@ namespace player
                     pickUpSystemFunc(selectedObj);
 
                     //If we look at something where we can place our object
-                } else if (hit.collider.TryGetComponent<IPlace>(out IPlace placeObj)) {
+                } else if (hit.collider.TryGetComponent(out IPlace placeObj)) {
 
                     hitSomething = true;
                     //Set the cursor active
@@ -79,11 +77,11 @@ namespace player
             //Set our pick up obj to whatever we're holding
             pickUpObj = objInv[holdingNum] != null ? objInv[holdingNum] : null;
             objAnim = pickUpObj != null ? pickUpObj.GetComponentInChildren<Animator>() : null;
-             
+
             //Check for our inputs
             inputsFunc();
 
-            handleAmmoFunc();
+            handleGunFunc();
         }
 
         //**************************************************************************************************************
@@ -153,56 +151,42 @@ namespace player
 
         void inputsFunc()
         {
-            //Scrolling up
-            if (Input.GetAxis("Mouse ScrollWheel") < 0)
+            void changeItemsFunc(int lastNum, int num)
             {
-                lastHoldingNum = holdingNum;
-                holdingNum++;
+                if (pickUpObj != null) pickUpObj.TryGetComponent(out IFunction objReset);
+                
+                
+                if (num == holdingNum) return;
 
-                //Make sure we can't scroll past 3
-                if (holdingNum > 2) holdingNum = 0;
+                
+                lastHoldingNum = lastNum;
+                holdingNum = num;
             }
-            //Scrolling down
-            else if (Input.GetAxis("Mouse ScrollWheel") > 0)
-            {
-                lastHoldingNum = holdingNum;
-                holdingNum--;
 
-                //Make sure we can't scroll past 0
-                if (holdingNum < 0) holdingNum = 2;
-            }
-            //Self explanatory if the person reading this isn't brain dead
-
-            else if (Input.GetKeyDown(KeyCode.Alpha1))
+            if (Input.GetKeyDown(KeyCode.Alpha1))
             {
-                lastHoldingNum = holdingNum;
-                holdingNum = 0;
+                changeItemsFunc(holdingNum, 0);
 
             } else if (Input.GetKeyDown(KeyCode.Alpha2)) {
-                lastHoldingNum = holdingNum;
-                holdingNum = 1;
+                changeItemsFunc(holdingNum, 1);
 
             } else if (Input.GetKeyDown(KeyCode.Alpha3)) {
-                lastHoldingNum = holdingNum;
-                holdingNum = 2;
+                changeItemsFunc(holdingNum, 2);
 
                 //Make it so we can press Q and switch to the thing we were holding last
             } else if (Input.GetKeyDown(KeyCode.Q)) {
                 int holdingNumHolder = holdingNum;
-                holdingNum = lastHoldingNum;
-                lastHoldingNum = holdingNumHolder;
+
+                changeItemsFunc(holdingNumHolder, lastHoldingNum);
             }
 
             inventorySorterFunc();
-
-            if(objAnim != null) objAnim.SetTrigger("pickUp");
         }
 
         //**************************************************************************************************************
 
         void inventorySorterFunc()
         {
-
             foreach (GameObject holdObjCheck in objInv)
             {
                 if (holdObjCheck == objInv[holdingNum] && holdObjCheck != null)
@@ -219,7 +203,7 @@ namespace player
 
         void pickUpSystemFunc(IPick selectedObj)
         {
-            bool altPickUp = true;
+            //bool altPickUp = true;
             //Get what we're doing with the interactable
             description.text = selectedObj.getDescFunc();
 
@@ -234,7 +218,7 @@ namespace player
 
                 } else if (pickUpObj != null) {
 
-                    for (int invNum = 0; invNum <= 2; invNum++)
+                    /*for (int invNum = 0; invNum <= 2; invNum++)
                     {
                         if (objInv[invNum] == null)
                         {
@@ -242,12 +226,10 @@ namespace player
                             altPickUp = false;
                             break;
                         }
-                    }
+                    }*/
 
-                    if (altPickUp){
-                        if (!objAnim.GetCurrentAnimatorStateInfo(0).IsName("equipped")) return;
-                        dropFunc(hit.transform);
-                    }
+                    if (!objAnim.GetCurrentAnimatorStateInfo(0).IsName("equipped")) return;
+                    dropFunc(hit.transform);
 
                     objInv[holdingNum] = hit.transform.gameObject;
                 }
@@ -291,9 +273,6 @@ namespace player
 
         void dropFunc(Transform placeArea)
         {
-            objAnim.SetTrigger("resetAnim");
-            objAnim.ResetTrigger("pickUp");
-
             //Set the parent to where we want to place it
             pickUpObj.transform.SetParent(placeArea);
 
@@ -318,19 +297,28 @@ namespace player
 
         //**************************************************************************************************************
 
-        void handleAmmoFunc()
+        void handleGunFunc()
         {
-            if (pickUpObj != null && pickUpObj.TryGetComponent<gunShoot>(out gunShoot gun))
+            if (pickUpObj != null && pickUpObj.TryGetComponent(out gunShoot gun))
             {
-                if (gun.anim == null) return;
+                crossHair = gun.crossGetter;
+
+                crossHair.SetActive(true);
+                isLookingAtCursor.SetActive(false);
+
+                if (objAnim == null) return;
 
                 gunShoot.showAmmo = true;
-                gunShoot.ammo = gun.anim.GetCurrentAnimatorStateInfo(0).IsName("reload")
-                                || gun.anim.GetAnimatorTransitionInfo(0).IsName("equipped -> reload")
-                                ? "Reloading" : gun.gunMag.ToString() + "/" + gun.totalAmmo.ToString();
+                gunShoot.ammo = objAnim.GetCurrentAnimatorStateInfo(0).IsName("reload") ? "Reloading" : gun.gunMag.ToString() + "/" + gun.totalAmmo.ToString();
+
 
             } else {
                 gunShoot.showAmmo = false;
+                if(crossHair != null)
+                {
+                    crossHair.SetActive(false);
+                    crossHair = null;
+                }
             }
         }
     }

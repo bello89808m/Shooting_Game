@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace player
@@ -12,9 +10,12 @@ namespace player
         [SerializeField] private GameObject cam;
         [SerializeField] private Transform playerBody;
 
+        public float mouseRestrict;
+
         void Start()
         {
             Cursor.lockState = CursorLockMode.Locked;
+            mouseRestrict = 1;
         }
 
         //**************************************************************************************************************
@@ -31,7 +32,7 @@ namespace player
             //looking left and right
             float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
             //looking up and down
-            float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+            float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * mouseRestrict * Time.deltaTime;
 
             //Get the negative of mouseY because without it the thing flips
             xRotation -= mouseY;

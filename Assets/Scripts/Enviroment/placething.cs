@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class placething : MonoBehaviour,IPlace
@@ -11,6 +9,6 @@ public class placething : MonoBehaviour,IPlace
 
     public Transform getPlaceAreaFunc()
     {
-        return this.transform;
+        return transform;
     }
 }

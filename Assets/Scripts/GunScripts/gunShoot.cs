@@ -22,11 +22,17 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
     [Header("Ammo Count")]
     [SerializeField] private TextMeshProUGUI ammoCount;
 
+    [Header("Crosshair")]
+    [SerializeField] private GameObject cursor;
+    [SerializeField] private RectTransform crossHair;
+    public GameObject crossGetter { get; private set; }
+    private float crossSize;
+
+    [Header("Animator")]
+    [SerializeField] private Animator anim;
+
     //interact controller
     private interactController interactCont;
-
-    //Gun Down Time
-    private float lastShootTime;
 
     //Cam Recoil
     private Vector3 camTargetRot;
@@ -38,9 +44,6 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
     //Ammo
     public int gunMag { get; private set; }
     public int totalAmmo { get; private set; }
-
-    //Animator
-    public Animator anim { get; private set; }
 
     //Reload
     public static bool showAmmo;
@@ -56,8 +59,12 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
     //IFunction settings
     public void doThisFunc()
     {
-        if (anim == null) return; 
-        if(anim.GetCurrentAnimatorStateInfo(0).IsName("equipped") && !anim.IsInTransition(0)) shootContFunc();
+        if(anim.isActiveAndEnabled && anim.GetCurrentAnimatorStateInfo(0).IsName("equipped") && !anim.IsInTransition(0)) shootContFunc();
+    }
+
+    public void resetValuesFunc()
+    {
+
     }
 
     //****************************************************************************************************************************************************************************************************************************
@@ -67,23 +74,51 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
 
         gunMag = settings.ammoMag;
         totalAmmo = settings.ammoCount;
+
+        crossGetter = crossHair.gameObject;
+        crossHair.gameObject.SetActive(false);
     }
 
     //****************************************************************************************************************************************************************************************************************************
 
     void Update()
     {
-        anim = interactCont.objAnim;
-
         ammoCount.SetText(ammo);
         ammoCount.enabled = showAmmo;
         //Check if the gun is actually held first
 
         if (transform.parent == holdArea || transform.parent == aimArea)
         {
+            if (anim.GetCurrentAnimatorStateInfo(0).IsName("idle")) anim.Play("pickUp");
+            else if(anim.GetCurrentAnimatorStateInfo(0).normalizedTime > 1) anim.Play("equipped");
+
             gunMoveControllerFunc();
             recoilControllerFunc();
+            dynamicCrosshairMoveFunc();
 
+        } else {
+            anim.Play("idle");
+        }
+    }
+
+    //****************************************************************************************************************************************************************************************************************************
+
+    void dynamicCrosshairMoveFunc()
+    {
+        moveDynamicCrossChangeFunc();
+
+        crossHair.sizeDelta = new Vector2(crossSize, crossSize);
+    }
+
+    //****************************************************************************************************************************************************************************************************************************
+
+    void moveDynamicCrossChangeFunc()
+    {
+        if(Input.GetAxisRaw("Horizontal") + Input.GetAxisRaw("Vertical") > 0)
+        {
+            crossSize = Mathf.Lerp(crossSize, settings.movingCross, Time.deltaTime * settings.crossSpeed);
+        } else {
+            crossSize = Mathf.Lerp(crossSize, settings.sittingCross, Time.deltaTime * settings.crossSpeed);
         }
     }
 
@@ -167,12 +202,17 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
 
     void shootContFunc()
     {
+        var cameraMove = FindObjectOfType<mouseLook>();
+        if(!Input.GetKey(KeyCode.Mouse0)) cameraMove.mouseRestrict = 1;
+
         //Check what kind of firing mode we have
         switch (settings.guntype)
         {
             //If its full auto, call the shoot script when we're holding the mouse down
             case gunSettingsScriptable.gunType.fullAuto:
                 if(Input.GetKey(KeyCode.Mouse0)){
+
+                    cameraMove.mouseRestrict = 0.15f;
                     shootHolder();
                 }
 
@@ -214,14 +254,18 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
 
         transform.SetParent(aimArea);
         transform.localRotation = Quaternion.Euler(Vector3.zero);
-        transform.localPosition = Vector3.MoveTowards(transform.localPosition, Vector3.zero, Time.deltaTime * 10f);
+        transform.localPosition = Vector3.Lerp(transform.localPosition, Vector3.zero, Time.deltaTime * 15f);
+
+        cursor.SetActive(false);
     }
 
     void stopAimingFunc()
     {
+        cursor.SetActive(true);
+
         transform.SetParent(holdArea);
         transform.localRotation = Quaternion.Euler(Vector3.zero);
-        transform.localPosition = Vector3.MoveTowards(transform.localPosition, Vector3.zero, Time.deltaTime * 10f);
+        transform.localPosition = Vector3.Lerp(transform.localPosition, Vector3.zero, Time.deltaTime * 15f);
 
         if(transform.localPosition == Vector3.zero) isAiming = false;
     }
@@ -230,11 +274,9 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
 
     IEnumerator IwaitFFS()
     {
-        anim.SetTrigger("reload");
-
         AnimationClip[] clips = anim.runtimeAnimatorController.animationClips;
 
-        anim.SetTrigger("reload");
+        anim.Play("reload");
 
         yield return new WaitForSeconds(clips[1].length);
 
@@ -249,6 +291,8 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
             gunMag += reloadAmount;
             totalAmmo -= reloadAmount;
         }
+
+        anim.Play("equipped");
     }
 
     //****************************************************************************************************************************************************************************************************************************
@@ -256,18 +300,20 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
     void shootFunc()
     {
         //Check if the last time we shot along with the delay is less than the current time in order to not fire all our bullets at once
-        if (lastShootTime + settings.shootDelay < Time.time && !interactCont.hitSomething)
+        if (!interactCont.hitSomething)
         {
             //launch a ray from the center of the screen
             Ray ray = cam.ViewportPointToRay(Vector3.one / 2f);
             //create a bullet from the bullet prefab
-            gunMag--;
             recoilFunc();
 
             settings.onFireFunc(ray, hit, shootArea);
 
-            //Set the last time we shot
-            lastShootTime = Time.time;
+            gunMag--;
+
+            crossSize -= settings.crossSizeIncrease;
+
+            anim.Play("shoot");
         }
     }
 
@@ -292,11 +338,16 @@ public class gunShoot : MonoBehaviour, IPick, IFunction
 
     void recoilFunc()
     {
+        float recoilMultiplier;
+
+        if (isAiming) recoilMultiplier = settings.aimMultiplier;
+        else recoilMultiplier = 1;
+
         //Make the cam target rot recoil up a certain amount and add some random recoil in the ranges of the -Y and the poitive Y, same for the Z axis
-        camTargetRot += new Vector3(-settings.recoilX, UnityEngine.Random.Range(-settings.recoilY, settings.recoilY), UnityEngine.Random.Range(-settings.recoilZ, settings.recoilZ));
+        camTargetRot += new Vector3(-settings.recoilX * recoilMultiplier, UnityEngine.Random.Range(-settings.recoilY, settings.recoilY) * recoilMultiplier, UnityEngine.Random.Range(-settings.recoilZ, settings.recoilZ) * recoilMultiplier);
 
         //Rotate our gun as far back as we want it, depending on the settings
-        transform.localRotation = Quaternion.Euler(-settings.recoilTargetRot, 0, 0);
+        transform.localRotation = Quaternion.Euler(-settings.recoilTargetRot * recoilMultiplier, 0, 0);
 
         //Get the local position of our gun
         Vector3 posRecoil = transform.localPosition;

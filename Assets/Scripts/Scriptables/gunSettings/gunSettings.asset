@@ -23,14 +23,16 @@ MonoBehaviour:
   maxPosRecoil: 0.17
   rotRecoilReturnSpeed: 1
   posRecoilReturnSpeed: 1
-  recoilX: 2
-  recoilY: 0.2
-  recoilZ: 0.2
+  recoilX: 3
+  recoilY: 0.5
+  recoilZ: 0.5
   recoilReturn: 5
-  snappiness: 4
+  snappiness: 3
   ammoMag: 100
   ammoCount: 100000
   frequency: 4.25
-  amplitude: 0.15
-  canAim: 1
+  amplitude: 0.13
+  canAim: 0
+  aimMultiplier: 0.5
+  sittingCross: 100
   guntype: 0
