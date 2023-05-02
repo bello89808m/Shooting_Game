@@ -12,14 +12,14 @@ namespace player
         RaycastHit hit;
 
         [Header("Cursor")]
+        [SerializeField] private GameObject cursor;
         [SerializeField] private GameObject isLookingAtCursor;
         [SerializeField] private Image interactionProgress;
-        [SerializeField] private GameObject cursor;
         [SerializeField] private TextMeshProUGUI description;
-        [SerializeField] private GameObject crossHair;
+        private GameObject crossHair;
 
         [Header("Pick Up System")]
-        [SerializeField] private GameObject[] objInv = new GameObject[3];
+        private GameObject[] objInv = new GameObject[3];
         private int holdingNum = 0;
         private int lastHoldingNum;
 
@@ -67,8 +67,6 @@ namespace player
                     //Check we aren't holding are
                     dropSystemFunc(placeObj);
                 }
-
-
             }
 
             //if we are not hitting something, set these things to null except not really null but just pretend ok
@@ -153,14 +151,16 @@ namespace player
         {
             void changeItemsFunc(int lastNum, int num)
             {
-                if (pickUpObj != null) pickUpObj.TryGetComponent(out IFunction objReset);
-                
-                
                 if (num == holdingNum) return;
 
-                
                 lastHoldingNum = lastNum;
                 holdingNum = num;
+
+                inventorySorterFunc();
+
+                if (pickUpObj != null)
+                    if (pickUpObj.TryGetComponent(out IFunction resetObj))
+                        resetObj.resetValuesFunc();
             }
 
             if (Input.GetKeyDown(KeyCode.Alpha1))
@@ -179,8 +179,6 @@ namespace player
 
                 changeItemsFunc(holdingNumHolder, lastHoldingNum);
             }
-
-            inventorySorterFunc();
         }
 
         //**************************************************************************************************************
@@ -189,11 +187,13 @@ namespace player
         {
             foreach (GameObject holdObjCheck in objInv)
             {
-                if (holdObjCheck == objInv[holdingNum] && holdObjCheck != null)
+                if (holdObjCheck == null) continue;
+
+                if (holdObjCheck == objInv[holdingNum])
                 {
                     holdObjCheck.SetActive(true);
 
-                } else if (holdObjCheck != objInv[holdingNum] && holdObjCheck != null) {
+                } else if (holdObjCheck != objInv[holdingNum]) {
                     holdObjCheck.SetActive(false);
                 }
             }
@@ -218,20 +218,8 @@ namespace player
 
                 } else if (pickUpObj != null) {
 
-                    /*for (int invNum = 0; invNum <= 2; invNum++)
-                    {
-                        if (objInv[invNum] == null)
-                        {
-                            holdingNum = invNum;
-                            altPickUp = false;
-                            break;
-                        }
-                    }*/
-
                     if (!objAnim.GetCurrentAnimatorStateInfo(0).IsName("equipped")) return;
                     dropFunc(hit.transform);
-
-                    objInv[holdingNum] = hit.transform.gameObject;
                 }
 
                 //Run the pick up function to set the object into our transform
@@ -243,6 +231,9 @@ namespace player
 
         void pickUpFunc(GameObject pickUp, Transform holdArea)
         {
+            objInv[holdingNum] = pickUp;
+
+            pickUp.GetComponent<Collider>().enabled = false;
             //Set out object to be parented to where we want it to go after holding it
             pickUp.transform.SetParent(holdArea);
             //idk this is a quality of life thing for me I just like it
@@ -273,6 +264,8 @@ namespace player
 
         void dropFunc(Transform placeArea)
         {
+            pickUpObj.GetComponent<Collider>().enabled = true;
+
             //Set the parent to where we want to place it
             pickUpObj.transform.SetParent(placeArea);
 
@@ -291,7 +284,7 @@ namespace player
         void setPosFunc(GameObject obj)
         {
             obj.transform.localPosition = Vector3.zero;
-            obj.transform.localRotation = Quaternion.Euler(Vector3.zero);
+            obj.transform.localRotation = Quaternion.identity;
             obj.transform.localScale = Vector3.one;
         }
 
@@ -299,7 +292,7 @@ namespace player
 
         void handleGunFunc()
         {
-            if (pickUpObj != null && pickUpObj.TryGetComponent(out gunShoot gun))
+            if (pickUpObj != null && pickUpObj.TryGetComponent(out GunClass gun))
             {
                 crossHair = gun.crossGetter;
 
@@ -308,16 +301,18 @@ namespace player
 
                 if (objAnim == null) return;
 
-                gunShoot.showAmmo = true;
-                gunShoot.ammo = objAnim.GetCurrentAnimatorStateInfo(0).IsName("reload") ? "Reloading" : gun.gunMag.ToString() + "/" + gun.totalAmmo.ToString();
+                GunClass.showAmmo = true;
+                GunClass.ammo = objAnim.GetCurrentAnimatorStateInfo(0).IsName("reload") ? "Reloading" : gun.gunMag.ToString() + "/" + gun.totalAmmo.ToString();
 
 
             } else {
-                gunShoot.showAmmo = false;
+                GunClass.showAmmo = false;
                 if(crossHair != null)
                 {
                     crossHair.SetActive(false);
                     crossHair = null;
+
+                    if (!cursor.activeSelf) cursor.SetActive(true);
                 }
             }
         }

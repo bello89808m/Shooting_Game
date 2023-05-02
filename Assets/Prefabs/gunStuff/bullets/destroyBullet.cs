@@ -13,7 +13,7 @@ public class destroyBullet : MonoBehaviour
     {
         //If the thing we are hitting is not the gun itself, the bullet will kill itself NOW
         var getGun = FindObjectOfType<interactController>().pickUpObj;
-        if (collision.gameObject == getGun) return;
+        if (collision.gameObject == getGun || collision.transform.TryGetComponent(out destroyBullet bullet)) return;
         Destroy(gameObject);
     }
 }

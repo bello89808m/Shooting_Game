@@ -10,12 +10,14 @@ namespace player
         [SerializeField] private GameObject cam;
         [SerializeField] private Transform playerBody;
 
-        public float mouseRestrict;
+        public float mouseXRestrict;
+        public float mouseYRestrict;
 
         void Start()
         {
             Cursor.lockState = CursorLockMode.Locked;
-            mouseRestrict = 1;
+            mouseXRestrict = 1;
+            mouseYRestrict = 1;
         }
 
         //**************************************************************************************************************
@@ -30,9 +32,9 @@ namespace player
         void MouseLookFunc()
         {
             //looking left and right
-            float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
+            float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * mouseXRestrict * Time.deltaTime;
             //looking up and down
-            float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * mouseRestrict * Time.deltaTime;
+            float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * mouseYRestrict * Time.deltaTime;
 
             //Get the negative of mouseY because without it the thing flips
             xRotation -= mouseY;

@@ -43,7 +43,12 @@ public abstract class gunSettingsScriptable : ScriptableObject
     public float crossSpeed;
     public float crossSizeIncrease;
 
+    [Header("Mouse Restrict")]
+    public float mouseXrestrict;
+    public float mouseYrestrict;
+
     [Header("Gun Type")]
+    public bool canAltFire;
     public gunType guntype;
 
     public enum gunType

@@ -181,7 +181,7 @@ namespace player
                 speed = 3f;
             }
 
-            float actualFOV = Mathf.MoveTowards(camera.fieldOfView, targetFOV, 50 * Time.deltaTime);
+            float actualFOV = Mathf.MoveTowards(camera.fieldOfView, targetFOV, 20 * Time.deltaTime);
 
             camera.fieldOfView = actualFOV;
             holdingCamera.fieldOfView = actualFOV;

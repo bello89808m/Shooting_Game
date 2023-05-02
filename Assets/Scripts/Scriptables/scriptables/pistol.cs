@@ -7,7 +7,7 @@ public class pistol : gunSettingsScriptable
     {
         GameObject bullet = Instantiate(bulletType, shootArea.transform.position, Quaternion.identity);
 
-        //If we hit something
+        //If we hit  something
         if (Physics.Raycast(ray, out hit, bulletDistance, ~LayerMask.GetMask("Holding")))
         {
             shootBullet(bullet, hit.point);
