@@ -13,9 +13,12 @@ namespace player
         public float mouseXRestrict;
         public float mouseYRestrict;
 
+        private interactController interactCont;
+
         void Start()
         {
             Cursor.lockState = CursorLockMode.Locked;
+            interactCont = FindObjectOfType<interactController>();
             mouseXRestrict = 1;
             mouseYRestrict = 1;
         }
@@ -31,6 +34,7 @@ namespace player
 
         void MouseLookFunc()
         {
+            if(interactCont.pickUpObj == null) cam.transform.localRotation = Quaternion.Lerp(cam.transform.localRotation, Quaternion.identity, Time.deltaTime * 4);
             //looking left and right
             float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * mouseXRestrict * Time.deltaTime;
             //looking up and down

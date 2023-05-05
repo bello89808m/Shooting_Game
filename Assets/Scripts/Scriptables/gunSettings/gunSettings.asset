@@ -17,7 +17,7 @@ MonoBehaviour:
   damage: 0
   bulletSpeed: 50
   bulletDistance: 75
-  recoilTargetRot: 10
+  recoilTargetRot: 15
   recoilTargetPush: 0.2
   maxPosRecoil: 0.15
   rotRecoilReturnSpeed: 8
@@ -28,7 +28,7 @@ MonoBehaviour:
   recoilReturn: 3
   snappiness: 2
   ammoMag: 30
-  ammoCount: 300
+  ammoCount: 10000000
   frequency: 4.25
   amplitude: 0.13
   canAim: 1
@@ -37,5 +37,7 @@ MonoBehaviour:
   movingCross: 500
   crossSpeed: 5
   crossSizeIncrease: 100
+  mouseXrestrict: 0.5
+  mouseYrestrict: 0.3
   canAltFire: 0
   guntype: 0

@@ -6,25 +6,51 @@ public class standardGunShoot : GunClass
 {
     public override void shootFunc()
     {
-        //Check if the last time we shot along with the delay is less than the current time in order to not fire all our bullets at once
-        if (!interactCont.hitSomething &&
-            (anim.GetCurrentAnimatorStateInfo(0).IsName("equipped") || anim.GetCurrentAnimatorStateInfo(0).IsName("reload")))
+        //Check what kind of firing mode we have
+        switch (settings.guntype)
         {
-            cameraMove.mouseYRestrict = settings.mouseYrestrict;
-            cameraMove.mouseXRestrict = settings.mouseXrestrict;
+            //If its full auto, call the shoot script when we're holding the mouse down
+            case gunSettingsScriptable.gunType.fullAuto:
+                if (Input.GetKey(KeyCode.Mouse0)) shootHolder();
+                break;
 
-            if (reload != null) { 
-                StopCoroutine(reload);
-                canReload = true;
+            //If it's semi auto, call every time we click
+            case gunSettingsScriptable.gunType.semiAuto:
+                if (Input.GetKeyDown(KeyCode.Mouse0)) shootHolder();
+                break;
+
+            //how tf can I get this case?
+            default:
+                Debug.LogError("bro what the fuck how did this happen");
+                break;
+        }
+
+        if (gunMag < 1 && totalAmmo != 0 && canReload == true && anim.GetCurrentAnimatorStateInfo(0).IsName(EQUIPPEDSTATE)) reload = StartCoroutine(IwaitFFS());
+
+        void shootHolder()
+        { 
+            if (gunMag != 0)
+            {
+                if (!interactCont.hitSomething && (anim.GetCurrentAnimatorStateInfo(0).IsName(EQUIPPEDSTATE) || anim.GetCurrentAnimatorStateInfo(0).IsName(RELOADSTATE)))
+                {
+                    cameraMove.mouseYRestrict = settings.mouseYrestrict;
+                    cameraMove.mouseXRestrict = settings.mouseXrestrict;
+
+                    if (reload != null)
+                    {
+                        StopCoroutine(reload);
+                        canReload = true;
+                    }
+
+                    Ray ray = cam.ViewportPointToRay(Vector3.one / 2f);
+
+                    settings.onFireFunc(ray, hit, shootArea);
+                    recoilFunc();
+                    gunMag--;
+                    crossSize += settings.crossSizeIncrease;
+                    anim.Play(SHOOTSTATE);
+                }
             }
-
-            Ray ray = cam.ViewportPointToRay(Vector3.one / 2f);
-
-            settings.onFireFunc(ray, hit, shootArea);
-            recoilFunc();
-            gunMag--;
-            crossSize += settings.crossSizeIncrease;
-            anim.Play("shoot");
         }
     }
 }

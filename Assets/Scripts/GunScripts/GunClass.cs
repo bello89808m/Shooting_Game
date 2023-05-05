@@ -15,7 +15,7 @@ public abstract class GunClass : MonoBehaviour, IPick, IFunction
     [SerializeField] protected gunSettingsScriptable settings;
 
     [Header("Player Cam")]
-    [SerializeField] protected Camera cam;
+    protected Camera cam;
     protected RaycastHit hit;
 
     [Header("Ammo Count")]
@@ -29,13 +29,20 @@ public abstract class GunClass : MonoBehaviour, IPick, IFunction
 
     [Header("Animator")]
     [SerializeField] protected Animator anim;
+    private string currentState;
+
+    protected const string SHOOTSTATE = "shoot";
+    protected const string IDLESTATE = "idle";
+    protected const string EQUIPPEDSTATE = "equipped";
+    protected const string PICKUPSTATE = "pickUp";
+    protected const string RELOADSTATE = "reload";
 
     //interact controller
     protected interactController interactCont;
 
     //Cam Recoil
-    protected static Vector3 camTargetRot;
-    protected static Vector3 camCurrentRot;
+    public static Vector3 camTargetRot;
+    public static Quaternion camCurrentRot;
 
     //Gun Bob
     protected Vector3 gunBobPos = Vector3.zero;
@@ -74,7 +81,6 @@ public abstract class GunClass : MonoBehaviour, IPick, IFunction
 
     public void resetValuesFunc()
     {
-        Debug.Log("working");
         isAiming = false;
         transform.SetParent(holdArea);
 
@@ -85,6 +91,8 @@ public abstract class GunClass : MonoBehaviour, IPick, IFunction
 
         cameraMove.mouseXRestrict = 1;
         cameraMove.mouseYRestrict = 1;
+
+        if(reload != null) StopCoroutine(reload);
     }
 
     //****************************************************************************************************************************************************************************************************************************
@@ -93,6 +101,7 @@ public abstract class GunClass : MonoBehaviour, IPick, IFunction
     {
         interactCont = FindObjectOfType<interactController>();
         cameraMove = FindObjectOfType<mouseLook>();
+        cam = Camera.main;
 
         gunMag = settings.ammoMag;
         totalAmmo = settings.ammoCount;
@@ -111,11 +120,11 @@ public abstract class GunClass : MonoBehaviour, IPick, IFunction
 
         if (transform.parent == holdArea || transform.parent == aimArea)
         {
-            if (anim.GetCurrentAnimatorStateInfo(0).IsName("idle")) anim.Play("pickUp");
-            else if (anim.GetCurrentAnimatorStateInfo(0).normalizedTime > 1) anim.Play("equipped");
+            if (anim.GetCurrentAnimatorStateInfo(0).IsName(IDLESTATE)) anim.Play(PICKUPSTATE);
+            else if (anim.GetCurrentAnimatorStateInfo(0).normalizedTime > 1) anim.Play(EQUIPPEDSTATE);
 
         } else {
-            anim.Play("idle");
+            anim.Play(IDLESTATE);
         }
     }
 
@@ -226,42 +235,20 @@ public abstract class GunClass : MonoBehaviour, IPick, IFunction
             cameraMove.mouseYRestrict = 1;
         }
 
-        //Check what kind of firing mode we have
-        switch (settings.guntype)
-        {
-            //If its full auto, call the shoot script when we're holding the mouse down
-            case gunSettingsScriptable.gunType.fullAuto:
-                if (Input.GetKey(KeyCode.Mouse0)) shootHolder();
-                break;
-
-            //If it's semi auto, call every time we click
-            case gunSettingsScriptable.gunType.semiAuto:
-                if (Input.GetKeyDown(KeyCode.Mouse0)) shootHolder();
-                break;
-
-            //how tf can I get this case?
-            default:
-                Debug.LogError("bro what the fuck how did this happen");
-                break;
-        }
-
-        void shootHolder()
-        {
-            if (gunMag <= 0 && totalAmmo != 0 && canReload == true) reload = StartCoroutine(IwaitFFS());
-            else if (gunMag != 0) shootFunc();
-        }
+        shootFunc();
     }
 
     protected void otherGunFunc()
     {
         if (Input.GetKeyDown(KeyCode.R) && canReload)
-            if(totalAmmo != 0 && gunMag != settings.ammoMag)
-                if(!anim.GetCurrentAnimatorStateInfo(0).IsName("pickUp")) reload = StartCoroutine(IwaitFFS());
+            if (totalAmmo != 0 && gunMag != settings.ammoMag)
+                if (anim.GetCurrentAnimatorStateInfo(0).IsName(EQUIPPEDSTATE))
+                    reload = StartCoroutine(IwaitFFS());
 
-        if (Input.GetKey(KeyCode.Mouse1) && settings.canAim) aimingFunc();
+        if (Input.GetKey(KeyCode.Mouse1) && settings.canAim && canReload) aimingFunc();
         else if (isAiming && !Input.GetKey(KeyCode.Mouse1)) stopAimingFunc();
 
-        if(Input.GetKeyDown(KeyCode.V) && settings.canAltFire && anim.GetCurrentAnimatorStateInfo(0).IsName("equipped"))
+        if(Input.GetKeyDown(KeyCode.V) && settings.canAltFire && anim.GetCurrentAnimatorStateInfo(0).IsName(EQUIPPEDSTATE))
         {
             if (!altFire) altFire = true;
             else altFire = false;
@@ -294,9 +281,19 @@ public abstract class GunClass : MonoBehaviour, IPick, IFunction
 
     protected IEnumerator IwaitFFS()
     {
+        if (isAiming)
+        {
+            cursor.SetActive(true);
+
+            transform.SetParent(holdArea);
+            transform.localPosition = Vector3.Lerp(transform.localPosition, Vector3.zero, Time.deltaTime * 15f);
+
+            StartCoroutine(IstopAim());
+        }
+
         canReload = false;
 
-        anim.Play("reload");
+        anim.Play(RELOADSTATE);
 
         yield return new WaitForSeconds(anim.runtimeAnimatorController.animationClips[1].length);
 
@@ -313,6 +310,19 @@ public abstract class GunClass : MonoBehaviour, IPick, IFunction
         }
 
         canReload = true;
+        anim.Play(EQUIPPEDSTATE);
+    }
+
+    private IEnumerator IstopAim()
+    {
+        while(transform.localPosition != Vector3.zero)
+        {
+            transform.localPosition = Vector3.Lerp(transform.localPosition, Vector3.zero, Time.deltaTime * 5f);
+
+            yield return null;
+        }
+
+        isAiming = false;
     }
 
     //****************************************************************************************************************************************************************************************************************************
@@ -322,9 +332,9 @@ public abstract class GunClass : MonoBehaviour, IPick, IFunction
         //Lerp from where our camera is rotoated to zero constantly
         camTargetRot = Vector3.Lerp(camTargetRot, Vector3.zero, Time.deltaTime * settings.recoilReturn);
         //Slerp the cam currentRot to target rot in order to add a bit of delay. However this can also function with the TargetRot, this one is a bit more for the aethestics
-        camCurrentRot = Vector3.Slerp(camCurrentRot, camTargetRot, Time.fixedDeltaTime * settings.snappiness);
+        camCurrentRot = Quaternion.Slerp(camCurrentRot, Quaternion.Euler(camTargetRot), Time.fixedDeltaTime * settings.snappiness);
         //make our local rotation the currentRot
-        cam.transform.localRotation = Quaternion.Euler(camCurrentRot);
+        cam.transform.localRotation = camCurrentRot;
 
         //Move our local position to zero but do not mess with the x and y values in order to avoid clashes in code
         transform.localPosition = Vector3.MoveTowards(transform.localPosition, new Vector3(transform.localPosition.x, transform.localPosition.y, 0), Time.deltaTime * settings.posRecoilReturnSpeed);

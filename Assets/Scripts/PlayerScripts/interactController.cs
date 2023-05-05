@@ -299,8 +299,6 @@ namespace player
                 crossHair.SetActive(true);
                 isLookingAtCursor.SetActive(false);
 
-                if (objAnim == null) return;
-
                 GunClass.showAmmo = true;
                 GunClass.ammo = objAnim.GetCurrentAnimatorStateInfo(0).IsName("reload") ? "Reloading" : gun.gunMag.ToString() + "/" + gun.totalAmmo.ToString();
 
@@ -314,6 +312,9 @@ namespace player
 
                     if (!cursor.activeSelf) cursor.SetActive(true);
                 }
+
+                GunClass.camCurrentRot = cam.transform.localRotation;
+                GunClass.camTargetRot = Vector3.zero;
             }
         }
     }
