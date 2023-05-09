@@ -6,7 +6,7 @@ namespace player
     {
         [SerializeField] private new Transform camera = null;
         [SerializeField] private playerMovement playerSpeed;
-        [SerializeField] private CharacterController controller;
+
 
         private Vector3 startPos;
 
@@ -40,7 +40,7 @@ namespace player
                     PlayMotionFunc(FootStepsFunc(6f, 0.0015f));
                     break;
                 default:
-                    PlayMotionFunc(FootStepsFunc(0f, 0f));
+                    PlayMotionFunc(FootStepsFunc(2f, 0.0005f));
                     break;
             }
         }

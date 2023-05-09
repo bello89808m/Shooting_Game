@@ -9,9 +9,9 @@ namespace player
         [Header("Movement")]
         [SerializeField] new Camera camera;
         [SerializeField] Camera holdingCamera;
-        [SerializeField] public float speed { get; private set; } = 3f;
         [SerializeField] private float sprintFOV = 65;
         [SerializeField] private float walkFOV = 60;
+        public float speed { get; private set; } = 4f;
         private float x, z;
         private bool isSprinting;
 
@@ -172,13 +172,13 @@ namespace player
 
             } else if (isSprinting) {
                 state = movementState.sprinting;
-                speed = 4f;
+                speed = 6f;
 
                 targetFOV = sprintFOV;
 
             } else {
                 state = movementState.walking;
-                speed = 3f;
+                speed = 4.5f;
             }
 
             float actualFOV = Mathf.MoveTowards(camera.fieldOfView, targetFOV, 20 * Time.deltaTime);

@@ -19,10 +19,10 @@ public abstract class gunSettingsScriptable : ScriptableObject
     public float posRecoilReturnSpeed;
 
     [Header("Camera Recoil Settings")]
-    public float recoilX;
-    public float recoilY;
-    public float recoilZ;
-    public float recoilReturn;
+    public float camRecoilX;
+    public float camRecoilY;
+    public float camRecoilZ;
+    public float camRecoilReturn;
     public float snappiness;
 
     [Header("Reload")]
@@ -32,6 +32,13 @@ public abstract class gunSettingsScriptable : ScriptableObject
     [Header("Gun Bob")]
     public float frequency;
     public float amplitude;
+    public float forwardPush;
+    public float backwardPush;
+    public float horizontalPush;
+
+    [Header("Gun Sway")]
+    public float rotSway;
+    public float swayPosDelay;
 
     [Header("Can Aim")]
     public bool canAim;

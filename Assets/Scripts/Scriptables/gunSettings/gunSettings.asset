@@ -15,29 +15,34 @@ MonoBehaviour:
   gunName: 
   bulletType: {fileID: 1524345498970761785, guid: 0c6b8ffb52f9846e1990d5bca7016108, type: 3}
   damage: 0
-  bulletSpeed: 50
+  bulletSpeed: 100
   bulletDistance: 75
-  recoilTargetRot: 15
-  recoilTargetPush: 0.2
-  maxPosRecoil: 0.15
-  rotRecoilReturnSpeed: 8
-  posRecoilReturnSpeed: 1
-  recoilX: 2
-  recoilY: 2
-  recoilZ: 2
-  recoilReturn: 3
+  recoilTargetRot: 35
+  recoilTargetPush: 0.5
+  maxPosRecoil: 0.7
+  rotRecoilReturnSpeed: 7
+  posRecoilReturnSpeed: 7
+  camRecoilX: 2
+  camRecoilY: 2
+  camRecoilZ: 2
+  camRecoilReturn: 3
   snappiness: 2
   ammoMag: 30
   ammoCount: 10000000
-  frequency: 4.25
-  amplitude: 0.13
+  frequency: 6
+  amplitude: 1.2
+  forwardPush: 0.45
+  backwardPush: 0.15
+  horizontalPush: 0.4
+  rotSway: 5
+  swayPosDelay: 1.2
   canAim: 1
   aimMultiplier: 0.5
   sittingCross: 200
-  movingCross: 500
+  movingCross: 350
   crossSpeed: 5
-  crossSizeIncrease: 100
+  crossSizeIncrease: 50
   mouseXrestrict: 0.5
   mouseYrestrict: 0.3
   canAltFire: 0
-  guntype: 0
+  guntype: 1

@@ -11,8 +11,9 @@ public class destroyBullet : MonoBehaviour
 
     public void OnCollisionEnter(Collision collision)
     {
-        //If the thing we are hitting is not the gun itself, the bullet will kill itself NOW
+        //Get the interact controller script
         var getGun = FindObjectOfType<interactController>().pickUpObj;
+        //If the thing we are hitting is not the gun itself or another bullet, the bullet will KILL itself NOW
         if (collision.gameObject == getGun || collision.transform.TryGetComponent(out destroyBullet bullet)) return;
         Destroy(gameObject);
     }
