@@ -13,8 +13,10 @@ public abstract class gunSettingsScriptable : ScriptableObject
 
     [Header("Gun Recoil Settings")]
     public float recoilTargetRot;
-    public float recoilTargetPush;
-    public float maxPosRecoil;
+    public float recoilTargetPushZ;
+    public float recoilTargetPushY;
+    public float maxPosRecoilZ;
+    public float maxPosRecoilY;
     public float rotRecoilReturnSpeed;
     public float posRecoilReturnSpeed;
 
@@ -33,10 +35,12 @@ public abstract class gunSettingsScriptable : ScriptableObject
     public float frequency;
     public float amplitude;
     public float forwardPush;
-    public float backwardPush;
-    public float horizontalPush;
+    public float forwardSprintPush;
+    public float gunPushLerpSpeed;
 
     [Header("Gun Sway")]
+    public float gunYsway;
+    public float gunXsway;
     public float rotSway;
     public float swayPosDelay;
 
@@ -47,6 +51,7 @@ public abstract class gunSettingsScriptable : ScriptableObject
     [Header("Dynamic Crosshair")]
     public float sittingCross;
     public float movingCross;
+    public float sprintingCross;
     public float crossSpeed;
     public float crossSizeIncrease;
 

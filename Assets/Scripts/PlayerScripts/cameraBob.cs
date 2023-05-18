@@ -40,7 +40,7 @@ namespace player
                     PlayMotionFunc(FootStepsFunc(6f, 0.0015f));
                     break;
                 default:
-                    PlayMotionFunc(FootStepsFunc(2f, 0.0005f));
+                    PlayMotionFunc(FootStepsFunc(2f, 0.00075f));
                     break;
             }
         }

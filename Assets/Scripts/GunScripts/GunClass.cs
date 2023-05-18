@@ -10,6 +10,8 @@ public abstract class GunClass : MonoBehaviour, IPick, IFunction
     [SerializeField] protected Transform holdArea;
     [SerializeField] protected Transform aimArea;
     [SerializeField] protected Transform shootArea;
+    [SerializeField] protected Transform gunMoveTrans;
+    [SerializeField] protected Transform gunRotTrans;
 
     [Header("Gun Settings")]
     [SerializeField] protected gunSettingsScriptable settings;
@@ -25,7 +27,7 @@ public abstract class GunClass : MonoBehaviour, IPick, IFunction
     [SerializeField] protected GameObject cursor;
     [SerializeField] protected RectTransform crossHair;
     public GameObject crossGetter { get; private set; }
-    protected static float crossSize;
+    public static float crossSize;
 
     [Header("Animator")]
     [SerializeField] protected Animator anim;
@@ -41,9 +43,6 @@ public abstract class GunClass : MonoBehaviour, IPick, IFunction
     public static Vector3 camTargetRot;
     public static Quaternion camCurrentRot;
     private Vector3 currentPos;
-    
-    //Gun Bob
-    protected Vector3 gunBobPos = Vector3.zero;
 
     //Ammo
     public int gunMag;
@@ -74,7 +73,7 @@ public abstract class GunClass : MonoBehaviour, IPick, IFunction
 
         otherGunFunc();
         gunMoveControllerFunc();
-        resetValFunc();
+        resetRecoilFunc();
         dynamicCrosshairMoveFunc();
     }
 
@@ -90,6 +89,8 @@ public abstract class GunClass : MonoBehaviour, IPick, IFunction
 
         cameraMove.mouseXRestrict = 1;
         cameraMove.mouseYRestrict = 1;
+
+        crossSize = 0;
 
         if(coReload != null) StopCoroutine(coReload);
     }
@@ -143,7 +144,8 @@ public abstract class GunClass : MonoBehaviour, IPick, IFunction
     {
         if (Input.GetAxisRaw("Horizontal") + Input.GetAxisRaw("Vertical") != 0)
         {
-            crossSize = Mathf.Lerp(crossSize, settings.movingCross, Time.deltaTime * settings.crossSpeed);
+            if (Input.GetKey(KeyCode.LeftShift)) crossSize = Mathf.Lerp(crossSize, settings.sprintingCross, Time.deltaTime * settings.crossSpeed);
+            else crossSize = Mathf.Lerp(crossSize, settings.movingCross, Time.deltaTime * settings.crossSpeed);
 
         } else {
             crossSize = Mathf.Lerp(crossSize, settings.sittingCross, Time.deltaTime * settings.crossSpeed);
@@ -164,34 +166,31 @@ public abstract class GunClass : MonoBehaviour, IPick, IFunction
 
     protected void gunSwayFunc()
     {
-        if (Input.GetAxisRaw("Mouse X") != 0 || Input.GetAxisRaw("Mouse Y") != 0)
-        {
-            //Get the axis of us turning the mouse and multiply it by how powerful we want the sway to be
-            float x = Input.GetAxisRaw("Mouse X") * 200;
-            float y = Input.GetAxisRaw("Mouse Y") * 225;
+        //Get the axis of us turning the mouse and multiply it by how powerful we want the sway to be
+        float x = Input.GetAxisRaw("Mouse X") * settings.gunXsway;
+        float y = Input.GetAxisRaw("Mouse Y") * settings.gunYsway;
 
-            float mouseSwayPushX;
-            float mouseSwayPushY;
-            Vector3 mouseSwayPush;
+        float mouseSwayPushX;
+        float mouseSwayPushY;
+        Vector3 mouseSwayPush;
 
-            if (Input.GetAxisRaw("Mouse X") > 0) mouseSwayPushX = transform.localPosition.x + settings.swayPosDelay;
-            else if (Input.GetAxisRaw("Mouse X") < 0) mouseSwayPushX = transform.localPosition.x - settings.swayPosDelay;
-            else mouseSwayPushX = 0;
+        if (Input.GetAxisRaw("Mouse X") > 0) mouseSwayPushX = gunRotTrans.localPosition.x + settings.swayPosDelay;
+        else if (Input.GetAxisRaw("Mouse X") < 0) mouseSwayPushX = gunRotTrans.localPosition.x - settings.swayPosDelay;
+        else mouseSwayPushX = 0;
 
-            if (Input.GetAxisRaw("Mouse Y") > 0) mouseSwayPushY = transform.localPosition.y + settings.swayPosDelay;
-            else if (Input.GetAxisRaw("Mouse Y") < 0) mouseSwayPushY = transform.localPosition.y - settings.swayPosDelay;
-            else mouseSwayPushY = 0;
+        if (Input.GetAxisRaw("Mouse Y") > 0) mouseSwayPushY = gunRotTrans.localPosition.y + settings.swayPosDelay;
+        else if (Input.GetAxisRaw("Mouse Y") < 0) mouseSwayPushY = gunRotTrans.localPosition.y - settings.swayPosDelay;
+        else mouseSwayPushY = 0;
 
-            mouseSwayPush = new Vector2(mouseSwayPushX, mouseSwayPushY);
+        mouseSwayPush = new Vector2(mouseSwayPushX, mouseSwayPushY);
 
-            //turn the gun on the direction our mouse is going by getting the sway and rotating it around the corresponding axis
-            Quaternion xSway = Quaternion.AngleAxis(-x, Vector3.up);
-            Quaternion ySway = Quaternion.AngleAxis(y, Vector3.right);
+        //turn the gun on the direction our mouse is going by getting the sway and rotating it around the corresponding axis
+        Quaternion xSway = Quaternion.AngleAxis(-x, Vector3.up);
+        Quaternion ySway = Quaternion.AngleAxis(y, Vector3.right);
 
-            //change the actual rotation of the gun itself
-            transform.localRotation = Quaternion.Slerp(transform.localRotation, xSway * ySway, Time.deltaTime * settings.rotSway);
-            transform.localPosition = Vector3.Lerp(transform.localPosition, mouseSwayPush, Time.deltaTime);
-        }
+        //change the actual rotation of the gun itself
+        gunRotTrans.localRotation = Quaternion.Slerp(gunRotTrans.localRotation, xSway * ySway, Time.deltaTime * settings.rotSway);
+        gunRotTrans.localPosition = Vector3.Lerp(gunRotTrans.localPosition, mouseSwayPush, Time.deltaTime);
     }
 
     //****************************************************************************************************************************************************************************************************************************
@@ -201,27 +200,30 @@ public abstract class GunClass : MonoBehaviour, IPick, IFunction
         //Might be able to move this
         if (Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0)
         {
+            Vector3 gunBobPos;
+            Vector3 gunMovePos;
+
             float swayMultiplier = frequencyMultiplierFunc();
             float swayZPush;
-            float swayXPush;
 
-            if (Input.GetAxisRaw("Vertical") == 1) swayZPush = settings.forwardPush;
-            else if (Input.GetAxisRaw("Vertical") == -1) swayZPush = -settings.backwardPush;
-            else swayZPush = 0;
+            if(Input.GetKey(KeyCode.LeftShift)) swayZPush = -settings.forwardSprintPush;
+            else swayZPush = -settings.forwardPush;
 
-            if (Input.GetAxisRaw("Horizontal") == 1) swayXPush = settings.horizontalPush;
-            else if (Input.GetAxisRaw("Horizontal") == -1) swayXPush = -settings.horizontalPush;
-            else swayXPush = 0;
+            gunBobPos.x = Mathf.Cos(Time.time * (settings.frequency / 2 * swayMultiplier)) * settings.amplitude / 5 * swayMultiplier;
+            gunBobPos.y = Mathf.Sin(Time.time * (settings.frequency * swayMultiplier)) * settings.amplitude / 3.5f * swayMultiplier;
+            gunBobPos.z = 0;
 
-            gunBobPos.x = Mathf.Cos(Time.time * (settings.frequency / 2 * swayMultiplier)) * settings.amplitude / 5.5f - swayXPush;
-            gunBobPos.y = Mathf.Sin(Time.time * (settings.frequency * swayMultiplier)) * settings.amplitude / 2.5f;
-            gunBobPos.z = transform.localPosition.z - swayZPush;
+            gunMovePos.x = 0;
+            gunMovePos.y = 0;
+            gunMovePos.z = gunMoveTrans.localPosition.z + swayZPush;
 
-            transform.localPosition = Vector3.Lerp(transform.localPosition, gunBobPos, Time.deltaTime);
+            gunMovePos.z = Mathf.Clamp(gunMovePos.z, swayZPush, 0);
+
+            gunMoveTrans.localPosition = Vector3.Lerp(gunMoveTrans.localPosition, gunBobPos + gunMovePos, Time.deltaTime * settings.gunPushLerpSpeed);
+        } else {
+            gunMoveTrans.localPosition = Vector3.Lerp(gunMoveTrans.localPosition, Vector3.zero, Time.deltaTime * settings.gunPushLerpSpeed);
         }
     }
-
-    //***************************************************************************************************************************************************************************************************************************
 
     //****************************************************************************************************************************************************************************************************************************
 
@@ -233,11 +235,11 @@ public abstract class GunClass : MonoBehaviour, IPick, IFunction
         switch (moveState.state)
         {
             case playerMovement.movementState.sprinting:
-                return 2.3f;
+                return 1.5f;
             case playerMovement.movementState.crouching:
-                return 1f;
+                return 0.5f;
             default:
-                return 1.4f;
+                return 1f;
         }
     }
 
@@ -254,17 +256,35 @@ public abstract class GunClass : MonoBehaviour, IPick, IFunction
         shootFunc();
     }
 
+
+    public abstract void shootFunc();
+
+    //****************************************************************************************************************************************************************************************************************************
+
     protected void otherGunFunc()
+    {
+        reloadFunc();
+        //aimFunc();
+        altFireFunc();
+    }
+
+    protected void reloadFunc()
     {
         if (Input.GetKeyDown(KeyCode.R) && canReload)
             if (totalAmmo != 0 && gunMag != settings.ammoMag)
                 if (anim.GetCurrentAnimatorStateInfo(0).IsName(EQUIPPEDSTATE))
                     coReload = StartCoroutine(IwaitFFS());
+    }
 
+    protected void aimFunc()
+    {
         if (Input.GetKey(KeyCode.Mouse1) && settings.canAim && canReload) aimingFunc();
         else if (isAiming && !Input.GetKey(KeyCode.Mouse1)) stopAimingFunc();
+    }
 
-        if(Input.GetKeyDown(KeyCode.V) && settings.canAltFire && anim.GetCurrentAnimatorStateInfo(0).IsName(EQUIPPEDSTATE))
+    protected void altFireFunc()
+    {
+        if (Input.GetKeyDown(KeyCode.V) && settings.canAltFire && anim.GetCurrentAnimatorStateInfo(0).IsName(EQUIPPEDSTATE))
         {
             if (!altFire) altFire = true;
             else altFire = false;
@@ -343,7 +363,7 @@ public abstract class GunClass : MonoBehaviour, IPick, IFunction
 
     //****************************************************************************************************************************************************************************************************************************
 
-    protected void resetValFunc()
+    protected void resetRecoilFunc()
     {
         //Lerp from where our camera is rotoated to zero constantly
         camTargetRot = Vector3.Lerp(camTargetRot, Vector3.zero, Time.deltaTime * settings.camRecoilReturn);
@@ -376,14 +396,15 @@ public abstract class GunClass : MonoBehaviour, IPick, IFunction
         //Get the local position of our gun
         Vector3 posRecoil = transform.localPosition;
         //Subtract the position by the target push backwars
-        posRecoil -= Vector3.forward * settings.recoilTargetPush;
+        posRecoil -= Vector3.forward * settings.recoilTargetPushZ;
+        posRecoil += Vector3.up * settings.recoilTargetPushY;
+
         //Clamp it to a specified amount in order to avoid a super far back recoil
-        posRecoil.z = Mathf.Clamp(posRecoil.z, -settings.maxPosRecoil + transform.localPosition.z, 0);
+        posRecoil.z = Mathf.Clamp(posRecoil.z, -settings.maxPosRecoilZ - gunMoveTrans.localPosition.z, 0);
+        posRecoil.y = Mathf.Clamp(posRecoil.y, 0, settings.maxPosRecoilY + gunMoveTrans.localPosition.y);
         //Set the position to be the recoil. Can this be more efficient? Yes. Did this bull shit take me so long even though it's the easiest thing ever and is 100% not what humbled my ego in this project? Yes. So will I fix it? Idk.
         transform.localPosition = posRecoil;
     }
 
     //****************************************************************************************************************************************************************************************************************************
-
-    public abstract void shootFunc();
 }

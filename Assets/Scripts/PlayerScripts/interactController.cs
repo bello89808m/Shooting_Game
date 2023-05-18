@@ -203,7 +203,6 @@ namespace player
 
         void pickUpSystemFunc(IPick selectedObj)
         {
-            //bool altPickUp = true;
             //Get what we're doing with the interactable
             description.text = selectedObj.getDescFunc();
 
@@ -270,7 +269,15 @@ namespace player
             pickUpObj.transform.SetParent(placeArea);
 
             //Make sure that the rotations, positions, and scale match to what we want when placing it
+
             setPosFunc(pickUpObj);
+
+            foreach (Transform transform in pickUpObj.transform)
+            {
+                transform.localPosition = Vector3.zero;
+                transform.localRotation = Quaternion.identity;
+                transform.localScale = Vector3.one;
+            }
 
             //Make the layer the default, enviroment layer
             pickUpObj.layer = LayerMask.NameToLayer("Default");
@@ -296,18 +303,28 @@ namespace player
             {
                 crossHair = gun.crossGetter;
 
-                crossHair.SetActive(true);
-                isLookingAtCursor.SetActive(false);
+                if (hitSomething)
+                {
+                    crossHair.SetActive(false);
+                    GunClass.crossSize = 0;
+                    cursor.SetActive(true);
+
+                } else{
+
+                    crossHair.SetActive(true);
+                    cursor.SetActive(false);
+                }
 
                 GunClass.showAmmo = true;
                 GunClass.ammo = objAnim.GetCurrentAnimatorStateInfo(0).IsName("reload") ? "Reloading" : gun.gunMag.ToString() + "/" + gun.totalAmmo.ToString();
 
 
             } else {
+
                 GunClass.showAmmo = false;
-                if(crossHair != null)
+                if (crossHair != null)
                 {
-                    crossHair.SetActive(false);
+                    crossHair.SetActive(false); 
                     crossHair = null;
 
                     if (!cursor.activeSelf) cursor.SetActive(true);

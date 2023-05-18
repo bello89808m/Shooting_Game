@@ -7,12 +7,15 @@ namespace player
         [SerializeField] private CharacterController controller;
 
         [Header("Movement")]
-        [SerializeField] new Camera camera;
-        [SerializeField] Camera holdingCamera;
+        [SerializeField] private new Camera camera;
+        [SerializeField] private Camera holdingCamera;
+        [SerializeField] private Transform camRot;
+        [SerializeField] private float camRotTotal;
+        [SerializeField] private float camRotSpeed;
         [SerializeField] private float sprintFOV = 65;
         [SerializeField] private float walkFOV = 60;
-        public float speed { get; private set; } = 4f;
-        private float x, z;
+        public float speed = 4f;
+        private float x, z, rawX;
         private bool isSprinting;
 
 
@@ -21,7 +24,7 @@ namespace player
         private float gravity = -5f;
 
         [Header("Crouch")]
-        [SerializeField] private float crouchingSpeed;
+        public float crouchingSpeed;
         private float currentHeight;
         private bool isCrouching;
 
@@ -64,6 +67,8 @@ namespace player
             //Get if we're pressing W or S
             z = Input.GetAxis("Vertical");
 
+            rawX = Input.GetAxisRaw("Horizontal");
+
             //If we press shift we run
             isSprinting = Input.GetKey(sprintKey);
             //If we press control we run or whatever the fuck
@@ -71,6 +76,10 @@ namespace player
 
             //move the character depending on what we're pressing
             Vector3 move = transform.right * x + transform.forward * z;
+
+            if(rawX < 0) camRot.localRotation = Quaternion.Slerp(camRot.localRotation, Quaternion.Euler(Vector3.forward * camRotTotal), Time.deltaTime * camRotSpeed);
+            else if(rawX > 0) camRot.localRotation = Quaternion.Slerp(camRot.localRotation, Quaternion.Euler(Vector3.forward * -camRotTotal), Time.deltaTime * camRotSpeed);
+            else camRot.localRotation = Quaternion.Slerp(camRot.localRotation, Quaternion.identity, Time.deltaTime * camRotSpeed);
 
             //Move the character and make sure the magnitude is not over one and then multiply it by it's speed
             controller.Move(Vector3.ClampMagnitude(move, 1.0f) * speed * Time.deltaTime);
@@ -94,7 +103,7 @@ namespace player
         {
             //Move Towards this height
             controller.height = Mathf.MoveTowards(currentHeight, 0.5f, Time.deltaTime * crouchingSpeed);
-            if (controller.height <= 0.55f)
+            if (controller.height <= 0.35f)
             {
                 controller.height = 0.2f;
             }
@@ -117,7 +126,7 @@ namespace player
                     isCrouching = true;
                     //If nothing is above us
                 } else {
-                    controller.height = Mathf.MoveTowards(currentHeight, 3.65f, Time.deltaTime * crouchingSpeed);
+                    controller.height = Mathf.Lerp(currentHeight, 3.65f, Time.deltaTime * crouchingSpeed);
                     if (controller.height >= 1.95f) {
                         controller.height = 3.65f;
                     }
@@ -126,9 +135,9 @@ namespace player
                 //If the raycast hits nothing
             } else {
 
-                controller.height = Mathf.MoveTowards(currentHeight, 3.65f, Time.deltaTime * crouchingSpeed);
+                controller.height = Mathf.Lerp(currentHeight, 3.65f, Time.deltaTime * crouchingSpeed);
 
-                if (controller.height >= 1.905) {
+                if (controller.height >= 3.5) {
                     controller.height = 3.65f;
 
                 }
@@ -172,13 +181,13 @@ namespace player
 
             } else if (isSprinting) {
                 state = movementState.sprinting;
-                speed = 6f;
+                speed = 5f;
 
                 targetFOV = sprintFOV;
 
             } else {
                 state = movementState.walking;
-                speed = 4.5f;
+                speed = 3.5f;
             }
 
             float actualFOV = Mathf.MoveTowards(camera.fieldOfView, targetFOV, 20 * Time.deltaTime);
