@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.Animations.Rigging;
 
 namespace player
 {
@@ -12,20 +13,20 @@ namespace player
         RaycastHit hit;
 
         [Header("Cursor")]
-        [SerializeField] private GameObject cursor;
         [SerializeField] private GameObject isLookingAtCursor;
         [SerializeField] private Image interactionProgress;
         [SerializeField] private TextMeshProUGUI description;
-        private GameObject crossHair;
 
         [Header("Pick Up System")]
         private GameObject[] objInv = new GameObject[3];
         private int holdingNum = 0;
         private int lastHoldingNum;
+        private Animator objAnim;
+        [SerializeField] private TwoBoneIKConstraint leftHand;
+        [SerializeField] private TwoBoneIKConstraint rightHand;
 
         public GameObject pickUpObj { get; private set; }
         public bool hitSomething { get; private set; }
-        public Animator objAnim { get; private set; }
 
         [Header("Interact System")]
         private float holdTime = 0;
@@ -70,7 +71,10 @@ namespace player
             }
 
             //if we are not hitting something, set these things to null except not really null but just pretend ok
-            if (!hitSomething) { isLookingAtCursor.SetActive(false); description.text = ""; }
+            if (!hitSomething) {
+                isLookingAtCursor.SetActive(false);
+                description.text = "";
+            }
 
             //Set our pick up obj to whatever we're holding
             pickUpObj = objInv[holdingNum] != null ? objInv[holdingNum] : null;
@@ -78,8 +82,6 @@ namespace player
 
             //Check for our inputs
             inputsFunc();
-
-            handleGunFunc();
         }
 
         //**************************************************************************************************************
@@ -159,8 +161,7 @@ namespace player
                 inventorySorterFunc();
 
                 if (pickUpObj != null)
-                    if (pickUpObj.TryGetComponent(out IFunction resetObj))
-                        resetObj.resetValuesFunc();
+                    pickUpObj.GetComponent<IPick>().resetValuesFunc();
             }
 
             if (Input.GetKeyDown(KeyCode.Alpha1))
@@ -274,9 +275,12 @@ namespace player
 
             foreach (Transform transform in pickUpObj.transform)
             {
-                transform.localPosition = Vector3.zero;
-                transform.localRotation = Quaternion.identity;
-                transform.localScale = Vector3.one;
+                if (transform.childCount >= 1)
+                {
+                    findAllTransFunc(transform);
+                }
+
+                setPosFunc(transform.gameObject);
             }
 
             //Make the layer the default, enviroment layer
@@ -295,44 +299,14 @@ namespace player
             obj.transform.localScale = Vector3.one;
         }
 
-        //**************************************************************************************************************
-
-        void handleGunFunc()
+        void findAllTransFunc(Transform trans)
         {
-            if (pickUpObj != null && pickUpObj.TryGetComponent(out GunClass gun))
+            foreach (Transform transform in trans)
             {
-                crossHair = gun.crossGetter;
-
-                if (hitSomething)
-                {
-                    crossHair.SetActive(false);
-                    GunClass.crossSize = 0;
-                    cursor.SetActive(true);
-
-                } else{
-
-                    crossHair.SetActive(true);
-                    cursor.SetActive(false);
-                }
-
-                GunClass.showAmmo = true;
-                GunClass.ammo = objAnim.GetCurrentAnimatorStateInfo(0).IsName("reload") ? "Reloading" : gun.gunMag.ToString() + "/" + gun.totalAmmo.ToString();
-
-
-            } else {
-
-                GunClass.showAmmo = false;
-                if (crossHair != null)
-                {
-                    crossHair.SetActive(false); 
-                    crossHair = null;
-
-                    if (!cursor.activeSelf) cursor.SetActive(true);
-                }
-
-                GunClass.camCurrentRot = cam.transform.localRotation;
-                GunClass.camTargetRot = Vector3.zero;
+                if (transform.childCount >= 1 && transform.gameObject.tag != "Base") findAllTransFunc(transform);
             }
         }
+
+        //**************************************************************************************************************
     }
 }

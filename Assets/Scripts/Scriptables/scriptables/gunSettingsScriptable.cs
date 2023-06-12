@@ -1,6 +1,11 @@
 using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+using player;
+using TMPro;
 
-public abstract class gunSettingsScriptable : ScriptableObject
+[CreateAssetMenu(fileName = "DefGunSet", menuName = "Gun Scriptable Obj")]
+public class gunSettingsScriptable : ScriptableObject
 {
     [Header("Gun Settings")]
     public string gunName;
@@ -31,28 +36,14 @@ public abstract class gunSettingsScriptable : ScriptableObject
     public int ammoMag;
     public int ammoCount;
 
-    [Header("Gun Bob")]
-    public float frequency;
-    public float amplitude;
-    public float forwardPush;
-    public float forwardSprintPush;
-    public float gunPushLerpSpeed;
-
-    [Header("Gun Sway")]
-    public float gunYsway;
-    public float gunXsway;
-    public float rotSway;
-    public float swayPosDelay;
-
     [Header("Can Aim")]
     public bool canAim;
     public float aimMultiplier;
 
     [Header("Dynamic Crosshair")]
     public float sittingCross;
-    public float movingCross;
-    public float sprintingCross;
     public float crossSpeed;
+    public float crossSpeedDecrease;
     public float crossSizeIncrease;
 
     [Header("Mouse Restrict")]
@@ -61,15 +52,9 @@ public abstract class gunSettingsScriptable : ScriptableObject
 
     [Header("Gun Type")]
     public bool canAltFire;
-    public gunType guntype;
 
-    public enum gunType
-    {
-        fullAuto,
-        semiAuto,
-    }
-
-    public abstract void onFireFunc(Ray ray, RaycastHit hit, Transform shootArea);
+    [Header("Layer Mask")]
+    public LayerMask mask;
 }
 
 

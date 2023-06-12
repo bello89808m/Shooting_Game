@@ -25,13 +25,15 @@ public interface IPlace
 
 public interface IPick
 {
+    public void resetValuesFunc();
+
     public string getDescFunc();
 
     public Transform getTransformAreaFunc();
-}
 
-public interface IFunction
-{
-    public void doThisFunc();
-    public void resetValuesFunc();
+    public Transform getRightHandTargetFunc();
+    public Transform getLeftHandTargetFunc();
+
+    public Transform getRightHandHintFunc();
+    public Transform getLeftHandHintFunc();
 }

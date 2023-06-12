@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b5cd0ee9b16d4259984d0c47631c713, type: 3}
+  m_Name: gunSettings 1
+  m_EditorClassIdentifier: 
+  gunName: fsdfdf
+  bulletType: {fileID: 1524345498970761785, guid: 0c6b8ffb52f9846e1990d5bca7016108, type: 3}
+  damage: 0
+  bulletSpeed: 100
+  bulletDistance: 50
+  recoilTargetRot: 0
+  recoilTargetPushZ: 0.4
+  recoilTargetPushY: 0.05
+  maxPosRecoilZ: 0.5
+  maxPosRecoilY: 0
+  rotRecoilReturnSpeed: 5
+  posRecoilReturnSpeed: 10
+  camRecoilX: 2
+  camRecoilY: 1
+  camRecoilZ: 1
+  camRecoilReturn: 3
+  snappiness: 2
+  ammoMag: 25
+  ammoCount: 2147483647
+  canAim: 0
+  aimMultiplier: 0
+  sittingCross: 100
+  crossSpeed: 10
+  crossSpeedDecrease: 7
+  crossSizeIncrease: 200
+  mouseXrestrict: 0.5
+  mouseYrestrict: 0.2
+  canAltFire: 0
+  mask:
+    serializedVersion: 2
+    m_Bits: 192

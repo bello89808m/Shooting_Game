@@ -6,6 +6,7 @@ namespace player
     {
         [SerializeField] private new Transform camera = null;
         [SerializeField] private playerMovement playerSpeed;
+        [SerializeField] private interactController InteractController;
 
 
         private Vector3 startPos;
@@ -23,6 +24,7 @@ namespace player
         private void CheckMotionFunc()
         {
             ResetPositionFunc();
+
             setBobSpeedFunc();
         }
 
@@ -31,16 +33,13 @@ namespace player
             switch (playerSpeed.state)
             {
                 case playerMovement.movementState.walking:
-                    PlayMotionFunc(FootStepsFunc(8f, 0.002f));
+                    PlayMotionFunc(FootStepsFunc(10f, 0.000885f));
                     break;
                 case playerMovement.movementState.sprinting:
-                    PlayMotionFunc(FootStepsFunc(10f, 0.0025f));
-                    break;
-                case playerMovement.movementState.crouching:
-                    PlayMotionFunc(FootStepsFunc(6f, 0.0015f));
+                    PlayMotionFunc(FootStepsFunc(12f, 0.0011f));
                     break;
                 default:
-                    PlayMotionFunc(FootStepsFunc(2f, 0.00075f));
+                    PlayMotionFunc(FootStepsFunc(4f, 0.00071f));
                     break;
             }
         }
@@ -50,7 +49,9 @@ namespace player
             //Create a new vector thats 0,0,0
             Vector3 pos = Vector3.zero;
             //the new vectors y value will do this math and go up and down depending on these two variables. I dont know how Sin works yet and I'm too afraid to find out now
-            pos.y += Mathf.Sin(Time.time * frequency) * amplitude;
+            pos.y += Mathf.Sin(Time.time * frequency) * amplitude / 1.35f;
+            pos.x += Mathf.Sin(Time.time * frequency/2) * amplitude / 1.4f;
+
             return pos;
         }
 
